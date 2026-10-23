@@ -12,7 +12,7 @@
       <!-- 境界阶梯 -->
       <section class="realm-rail card">
         <div
-          v-for="(r, i) in REALMS"
+          v-for="(r, i) in realms"
           :key="r.id"
           class="realm-step"
           :class="{ on: r.id === selectedId, passed: i < simIndex }"
@@ -98,7 +98,7 @@
       <!-- 秘法 -->
       <h3 class="sec-sub">秘法传承 · ARTS</h3>
       <div class="arts">
-        <article v-for="a in ARTS" :key="a.name" class="art card">
+        <article v-for="a in arts" :key="a.name" class="art card">
           <div class="art-top">
             <span>{{ a.type }}</span>
             <em>{{ a.from }}</em>
@@ -113,12 +113,34 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
 import { REALMS, ARTS } from '../data/lore.js'
+import { fetchLore } from '../api/lore.js'
+
+// 优先使用后台管理的数据；后端不可用时兜底本地 lore.js
+const realms = ref([...REALMS])
+const arts = ref([...ARTS])
+onMounted(async () => {
+  try {
+    const [resRealms, resArts] = await Promise.allSettled([fetchLore('realms'), fetchLore('arts')])
+    if (resRealms.status === 'fulfilled') {
+      const arr = resRealms.value.data
+      if (Array.isArray(arr) && arr.length) realms.value = arr
+    }
+    if (resArts.status === 'fulfilled') {
+      const arr = resArts.value.data
+      if (Array.isArray(arr) && arr.length) arts.value = arr
+    }
+  } catch {
+    /* 静默降级为本地数据 */
+  }
+})
 
 const selectedId = ref('shape')
-const selected = computed(() => REALMS.find((r) => r.id === selectedId.value) || REALMS[0])
+const selected = computed(
+  () => realms.value.find((r) => r.id === selectedId.value) || realms.value[0]
+)
 
 /* 滑杆 0–100 映射到 1 万 – 10 亿（对数刻度） */
 const sim = ref(44)
@@ -126,13 +148,13 @@ const simPower = computed(() => Math.pow(10, sim.value / 20))
 
 const simIndex = computed(() => {
   let idx = 0
-  REALMS.forEach((r, i) => {
+  realms.value.forEach((r, i) => {
     if (simPower.value >= r.min) idx = i
   })
   return idx
 })
-const simRealm = computed(() => REALMS[simIndex.value])
-const nextRealm = computed(() => REALMS[simIndex.value + 1] || null)
+const simRealm = computed(() => realms.value[simIndex.value])
+const nextRealm = computed(() => realms.value[simIndex.value + 1] || null)
 
 const simProgress = computed(() => {
   const cur = simRealm.value

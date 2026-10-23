@@ -11,7 +11,7 @@
 
       <div class="chr-tabs">
         <button
-          v-for="c in CHARACTERS"
+          v-for="c in characters"
           :key="c.id"
           class="chr-tab"
           :class="{ on: c.id === currentId }"
@@ -108,10 +108,30 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
 import { CHARACTERS } from '../data/lore.js'
+import { fetchLore } from '../api/lore.js'
+
+// 优先使用后台管理的数据；后端不可用时兜底本地 lore.js
+const characters = ref([...CHARACTERS])
+onMounted(async () => {
+  try {
+    const res = await fetchLore('characters')
+    const arr = res.data
+    if (Array.isArray(arr) && arr.length) {
+      characters.value = arr
+      if (!arr.some((c) => c.id === currentId.value)) {
+        currentId.value = arr[0].id
+      }
+    }
+  } catch {
+    /* 静默降级为本地数据 */
+  }
+})
 
 const currentId = ref('luofeng')
-const current = computed(() => CHARACTERS.find((c) => c.id === currentId.value) || CHARACTERS[0])
+const current = computed(
+  () => characters.value.find((c) => c.id === currentId.value) || characters.value[0]
+)
 </script>

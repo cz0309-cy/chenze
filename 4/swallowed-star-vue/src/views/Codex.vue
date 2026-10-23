@@ -94,9 +94,10 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
 import { CIVS } from '../data/lore.js'
+import { fetchLore } from '../api/lore.js'
 
 const filters = [
   { key: 'all', label: '全部条目' },
@@ -109,9 +110,23 @@ const filter = ref('all')
 const keyword = ref('')
 const currentId = ref('C-001')
 
+// 优先使用后台管理的数据；后端不可用时兜底本地 lore.js
+const civs = ref([...CIVS])
+onMounted(async () => {
+  try {
+    const res = await fetchLore('civs')
+    const arr = res.data
+    if (Array.isArray(arr) && arr.length) {
+      civs.value = arr
+    }
+  } catch {
+    /* 静默降级为本地数据 */
+  }
+})
+
 const list = computed(() => {
   const k = keyword.value.trim()
-  return CIVS.filter((c) => {
+  return civs.value.filter((c) => {
     const okType =
       filter.value === 'all' ||
       (filter.value === 'human' && c.type.indexOf('人类') === 0) ||
@@ -123,7 +138,7 @@ const list = computed(() => {
 })
 
 const current = computed(() => {
-  const hit = CIVS.find((c) => c.id === currentId.value)
-  return hit || list.value[0] || CIVS[0]
+  const hit = civs.value.find((c) => c.id === currentId.value)
+  return hit || list.value[0] || civs.value[0]
 })
 </script>

@@ -160,9 +160,10 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
 import { STAR_REGIONS, EXPLORE_LOGS } from '../data/lore.js'
+import { fetchLore } from '../api/lore.js'
 import { useToast } from '../composables/useToast.js'
 
 const { show } = useToast()
@@ -170,6 +171,22 @@ const { show } = useToast()
 const regions = reactive(STAR_REGIONS.map((r) => ({ ...r })))
 const currentId = ref('earth')
 const logs = ref([...EXPLORE_LOGS])
+
+// 优先使用后台管理的数据；后端不可用时兜底本地 lore.js
+onMounted(async () => {
+  try {
+    const res = await fetchLore('regions')
+    const arr = res.data
+    if (Array.isArray(arr) && arr.length) {
+      regions.splice(0, regions.length, ...arr)
+      if (!regions.some((r) => r.id === currentId.value)) {
+        currentId.value = regions[0].id
+      }
+    }
+  } catch {
+    /* 静默降级为本地数据 */
+  }
+})
 
 const current = computed(() => regions.find((r) => r.id === currentId.value) || regions[0])
 const doneCount = computed(() => regions.filter((r) => r.progress >= 100).length)

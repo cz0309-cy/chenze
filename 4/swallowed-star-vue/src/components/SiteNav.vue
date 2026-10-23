@@ -33,6 +33,23 @@
     <span class="spacer"></span>
     <span class="clock">{{ clock }}</span>
 
+    <button class="btn-admin" title="进入后台管理系统" @click="goAdmin">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="3" y="11" width="18" height="10" rx="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+      后台管理系统
+    </button>
+
     <div class="nav-user">
       <span class="avatar">{{ avatarChar }}</span>
       <span class="name">{{ nickname }}</span>
@@ -98,6 +115,10 @@ function goLogout() {
   router.push('/login')
 }
 
+function goAdmin() {
+  router.push('/admin/login')
+}
+
 onMounted(() => {
   tick()
   timer = setInterval(tick, 1000)
@@ -106,3 +127,27 @@ onMounted(() => {
 })
 onBeforeUnmount(() => clearInterval(timer))
 </script>
+
+<style scoped>
+.btn-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 14px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 212, 121, 0.45);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 212, 121, 0.14), rgba(245, 166, 35, 0.08));
+  color: var(--gold);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-admin:hover {
+  background: linear-gradient(135deg, rgba(255, 212, 121, 0.28), rgba(245, 166, 35, 0.16));
+  box-shadow: 0 0 14px rgba(255, 212, 121, 0.35);
+  transform: translateY(-1px);
+}
+</style>

@@ -98,20 +98,38 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
 import { GOODS } from '../data/lore.js'
+import { fetchLore } from '../api/lore.js'
 import { useToast } from '../composables/useToast.js'
 
 const { show } = useToast()
 
-const cats = ['全部', ...new Set(GOODS.map((g) => g.cat))]
+// 优先使用后台管理的数据；后端不可用时兜底本地 lore.js
+const goods = ref([...GOODS])
+const cats = ref(['全部', ...new Set(GOODS.map((g) => g.cat))])
+onMounted(async () => {
+  try {
+    const res = await fetchLore('goods')
+    const arr = res.data
+    if (Array.isArray(arr) && arr.length) {
+      goods.value = arr
+      cats.value = ['全部', ...new Set(arr.map((g) => g.cat))]
+    }
+  } catch {
+    /* 静默降级为本地数据 */
+  }
+})
+
 const cat = ref('全部')
 const balance = ref(500000)
 const cart = ref([])
 
-const list = computed(() => (cat.value === '全部' ? GOODS : GOODS.filter((g) => g.cat === cat.value)))
-const cartItems = computed(() => GOODS.filter((g) => cart.value.includes(g.id)))
+const list = computed(() =>
+  cat.value === '全部' ? goods.value : goods.value.filter((g) => g.cat === cat.value)
+)
+const cartItems = computed(() => goods.value.filter((g) => cart.value.includes(g.id)))
 const total = computed(() =>
   cartItems.value.reduce((sum, g) => sum + (g.price === null ? 0 : g.price), 0)
 )

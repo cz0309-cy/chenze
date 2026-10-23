@@ -97,3 +97,35 @@
 - 样式：`src/styles/pages.css`（模块页专属，已在 `main.js` 引入），沿用 `style.css` 的 CSS 变量与金色科幻风格。
 - 备份：`src_backup_20261019/`（本次改动前的 src 快照，确认无误后可删）。
 
+## 9. 后台管理系统（2026-10-23）
+前台导航栏新增「后台管理系统」按钮 → `/admin/login`（仅登录无注册）→ `/admin` 数据管理台。
+
+**表**（`schema.sql` / `star_user.sql` 均已加，启动幂等）
+- `admin_user`：后台管理员，与前台 star_user 隔离；初始账号 `admin / 123456`（BCrypt，AdminDataInitializer 创建）
+- `star_region`（星海探索）/ `civilization`（文明图鉴）/ `good_item`（奇物交易）/
+  `cultivate_realm` + `secret_art`（意识修炼：境界+秘法）/ `character_profile`（人物档案）
+- 嵌套结构（资源/事件/特征/能力条/时间线/关系网等）以 `*_json` TEXT 列存 JSON 数组
+- 种子数据：`src/main/resources/lore-seed.json`（由前端 lore.js 转换，code 字段对应前端 id），
+  表为空时由 `AdminDataInitializer` 自动写入
+
+**后端接口**
+- `POST /api/admin/auth/login|logout`、`GET /api/admin/auth/me` —— 管理员认证，token 前缀 `adm-`，
+  与前台 token（TokenStore）完全独立
+- `GET/POST /api/admin/lore/{module}`、`PUT/DELETE /api/admin/lore/{module}/{id}` —— 统一 CRUD，
+  module = regions|civs|goods|realms|arts|characters；list 支持 keyword（按模块搜索列模糊匹配）+ page/size 分页；
+  全部需要 `Authorization: Bearer <admin token>`，未登录返回 code=401
+- `GET /api/lore/{module}` —— 前台只读接口，返回结构与 lore.js 一致（code→id、minPower→min、
+  fromSource→from、hot→bool、description→desc、JSON 字符串→数组/对象）
+- 注意：`desc` 是 MySQL 保留字，实体统一用 `description` 字段映射 description 列
+
+**前端**
+- `api/admin.js`（ss_admin_token 独立存储 + admin CRUD 封装）、`api/lore.js`（前台数据拉取）
+- `admin/modules.js` —— 5 大模块的列表列 / 表单字段配置（驱动通用 CRUD 页）
+- `views/admin/AdminLogin.vue`（登录页）、`AdminLayout.vue`（侧边栏布局+会话校验）、
+  `AdminCrud.vue`（通用增删改查：分页/搜索/弹窗表单；lines 字段=每行一条，json 字段=JSON 编辑）
+- 路由：`/admin/login`、`/admin/:module`（regions/civs/goods/cultivate/characters），
+  `meta.adminAuth` 守卫（无 ss_admin_token 跳后台登录页）
+- 前台 5 页（Explore/Codex/Market/Cultivate/Character）已改为 onMounted 拉取 `/api/lore/*`，
+  失败自动兜底本地 lore.js；lore.js 数据同时作为后台种子数据源保留
+- 意识修炼后台页含两个数据组页签：境界阶梯（realms）+ 秘法传承（arts）
+
