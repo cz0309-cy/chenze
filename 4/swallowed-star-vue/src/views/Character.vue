@@ -115,14 +115,30 @@ import { fetchLore } from '../api/lore.js'
 
 // 优先使用后台管理的数据；后端不可用时兜底本地 lore.js
 const characters = ref([...CHARACTERS])
+
+// 后台新增人物若部分字段留空，给出兜底，避免前台渲染异常
+function normalize(list) {
+  const arr = (v) => (Array.isArray(v) ? v : [])
+  return list.map((c) => ({
+    ...c,
+    glyph: c.glyph || (c.name || '星')[0],
+    tags: arr(c.tags),
+    ability: arr(c.ability),
+    relations: arr(c.relations),
+    intro: arr(c.intro),
+    stats: arr(c.stats),
+    timeline: arr(c.timeline)
+  }))
+}
+
 onMounted(async () => {
   try {
     const res = await fetchLore('characters')
     const arr = res.data
     if (Array.isArray(arr) && arr.length) {
-      characters.value = arr
-      if (!arr.some((c) => c.id === currentId.value)) {
-        currentId.value = arr[0].id
+      characters.value = normalize(arr)
+      if (!characters.value.some((c) => c.id === currentId.value)) {
+        currentId.value = characters.value[0].id
       }
     }
   } catch {

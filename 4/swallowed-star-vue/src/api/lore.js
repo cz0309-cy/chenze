@@ -3,7 +3,7 @@ import { request } from './http.js'
 
 /**
  * 拉取某个模块的数据
- * @param {string} module regions|civs|goods|realms|arts|characters
+ * @param {string} module regions|civs|goods|realms|characters（realms 每项自带 arts 秘法列表）
  * @returns {Promise<Array>} 数据数组
  */
 export function fetchLore(module) {

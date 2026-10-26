@@ -16,6 +16,9 @@ public class SecretArt {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    /** 归属标记：后台编辑时存 realm:{境界主键}，前台只读接口不返回该字段 */
+    private String code;
+
     private String name;
 
     /** 类型 */

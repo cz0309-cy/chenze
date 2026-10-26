@@ -17,10 +17,10 @@
           :key="m.key"
           :to="`/admin/${m.key}`"
           class="side-item"
-          :class="{ active: route.params.module === m.key }"
+          :class="{ active: current.key === m.key }"
         >
           <span class="side-icon">{{ m.icon }}</span>
-          {{ m.title }}
+          <span class="side-label">{{ m.title }}</span>
         </router-link>
       </nav>
 
@@ -32,7 +32,7 @@
     <!-- 主区 -->
     <div class="admin-main">
       <header class="admin-topbar">
-        <h2>{{ current.title }} <span class="topbar-en">DATA CONSOLE</span></h2>
+        <h2>{{ current.title }} <span class="topbar-en">{{ current.subtitle }}</span></h2>
         <div class="topbar-user">
           <span class="avatar">{{ avatarChar }}</span>
           <span class="name">{{ adminName }}</span>
@@ -41,6 +41,7 @@
       </header>
 
       <main class="admin-content">
+        <p class="mod-desc">{{ current.desc }}</p>
         <AdminCrud :key="current.key" :mod="current" />
       </main>
     </div>
@@ -51,14 +52,18 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ADMIN_MODULES } from '../../admin/modules.js'
-import { adminLogout, adminMe, clearAdminToken, getAdminToken } from '../../api/admin.js'
+import { adminLogout, adminMe, clearAdminToken } from '../../api/admin.js'
 import AdminCrud from './AdminCrud.vue'
 
 const route = useRoute()
 const router = useRouter()
 
+// 按当前路由匹配模块（保证直接访问 /admin/goods 时内容与侧边栏一致）
 const current = computed(
-  () => ADMIN_MODULES.find((m) => m.key === route.params.module) || ADMIN_MODULES[0]
+  () =>
+    ADMIN_MODULES.find((m) => route.path === `/admin/${m.key}`) ||
+    ADMIN_MODULES.find((m) => route.path.startsWith(`/admin/${m.key}`)) ||
+    ADMIN_MODULES[0]
 )
 
 const adminName = ref('管理员')
@@ -103,11 +108,11 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .admin-shell {
-  position: relative;
-  z-index: 1;
+  position: fixed;
+  inset: 0;
+  z-index: 2;
   display: flex;
-  min-height: 100vh;
-  padding: 0;
+  overflow: hidden;
 }
 
 /* 侧边栏 */
@@ -192,6 +197,7 @@ onBeforeUnmount(() => {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .admin-topbar {
   display: flex;
@@ -248,10 +254,20 @@ onBeforeUnmount(() => {
 }
 .admin-content {
   flex: 1;
-  padding: 24px 28px 40px;
-  max-width: 1280px;
+  overflow-y: auto;
+  padding: 22px 28px 40px;
   width: 100%;
-  margin: 0 auto;
+}
+.admin-content > * {
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.mod-desc {
+  margin-bottom: 16px;
+  font-size: 12.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
 }
 
 @media (max-width: 860px) {
@@ -261,13 +277,16 @@ onBeforeUnmount(() => {
   }
   .side-brand b,
   .side-sub,
-  .side-item span:not(.side-icon),
+  .side-label,
   .side-link {
     display: none;
   }
   .side-item {
     justify-content: center;
     padding: 12px 0;
+  }
+  .admin-content {
+    padding: 18px 14px 32px;
   }
 }
 </style>

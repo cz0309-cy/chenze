@@ -119,18 +119,37 @@ import { REALMS, ARTS } from '../data/lore.js'
 import { fetchLore } from '../api/lore.js'
 
 // 优先使用后台管理的数据；后端不可用时兜底本地 lore.js
+// 后台的「意识修炼」模块同时维护境界与其秘法，秘法随境界一起返回
 const realms = ref([...REALMS])
 const arts = ref([...ARTS])
 onMounted(async () => {
   try {
-    const [resRealms, resArts] = await Promise.allSettled([fetchLore('realms'), fetchLore('arts')])
-    if (resRealms.status === 'fulfilled') {
-      const arr = resRealms.value.data
-      if (Array.isArray(arr) && arr.length) realms.value = arr
-    }
-    if (resArts.status === 'fulfilled') {
-      const arr = resArts.value.data
-      if (Array.isArray(arr) && arr.length) arts.value = arr
+    const res = await fetchLore('realms')
+    const arr = res.data
+    if (!Array.isArray(arr) || !arr.length) return
+
+    const arrOf = (v) => (Array.isArray(v) ? v : [])
+    realms.value = arr.map((r) => ({
+      ...r,
+      powers: arrOf(r.powers),
+      arts: arrOf(r.arts),
+      min: Number(r.min) || 0
+    }))
+
+    // 汇总各境界下的秘法；若后台没有维护秘法，则沿用本地演示数据
+    const merged = []
+    const seen = new Set()
+    realms.value.forEach((r) => {
+      r.arts.forEach((a) => {
+        if (!a || !a.name || seen.has(a.name)) return
+        seen.add(a.name)
+        merged.push(a)
+      })
+    })
+    if (merged.length) arts.value = merged
+
+    if (!realms.value.some((r) => r.id === selectedId.value)) {
+      selectedId.value = realms.value[0].id
     }
   } catch {
     /* 静默降级为本地数据 */

@@ -156,6 +156,7 @@ CREATE TABLE IF NOT EXISTS cultivate_realm (
 
 CREATE TABLE IF NOT EXISTS secret_art (
   id           BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+  code         VARCHAR(32)  DEFAULT NULL            COMMENT '归属标记 realm:{境界主键}，由后台维护',
   name         VARCHAR(64)  NOT NULL                COMMENT '秘法名',
   type         VARCHAR(32)  DEFAULT NULL            COMMENT '类型',
   from_source  VARCHAR(128) DEFAULT NULL            COMMENT '来源',
@@ -190,3 +191,5 @@ CREATE TABLE IF NOT EXISTS character_profile (
   UNIQUE KEY uk_code (code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='人物档案表';
 
+-- 兼容旧库：为 secret_art 补充归属列（已存在则忽略报错）
+ALTER TABLE secret_art ADD COLUMN code VARCHAR(32) DEFAULT NULL COMMENT '归属标记 realm:{境界主键}';

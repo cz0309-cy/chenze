@@ -8,14 +8,12 @@ import com.fenglin.springboottest.entity.Civilization;
 import com.fenglin.springboottest.entity.CultivateRealm;
 import com.fenglin.springboottest.entity.GoodItem;
 import com.fenglin.springboottest.entity.SecretArt;
-import com.fenglin.springboottest.entity.StarRegion;
 import com.fenglin.springboottest.mapper.AdminUserMapper;
 import com.fenglin.springboottest.mapper.CharacterProfileMapper;
 import com.fenglin.springboottest.mapper.CivilizationMapper;
 import com.fenglin.springboottest.mapper.CultivateRealmMapper;
 import com.fenglin.springboottest.mapper.GoodItemMapper;
 import com.fenglin.springboottest.mapper.SecretArtMapper;
-import com.fenglin.springboottest.mapper.StarRegionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
@@ -25,7 +23,8 @@ import org.springframework.stereotype.Component;
 /**
  * 后台系统初始化：
  * 1. admin_user 为空时创建管理员账号 admin / 123456（BCrypt）。
- * 2. 5 大模块表为空时，从 classpath:lore-seed.json 写入与前端 lore.js 一致的演示数据。
+ * 2. 后台管理的 4 大模块（文明图鉴 / 奇物交易 / 意识修炼 / 人物档案）表为空时，
+ *    从 classpath:lore-seed.json 写入与前端 lore.js 一致的演示数据。
  * 幂等：重复启动不会重复插入。
  */
 @Component
@@ -33,8 +32,6 @@ public class AdminDataInitializer implements CommandLineRunner {
 
     @Autowired
     private AdminUserMapper adminUserMapper;
-    @Autowired
-    private StarRegionMapper regionMapper;
     @Autowired
     private CivilizationMapper civMapper;
     @Autowired
@@ -69,26 +66,6 @@ public class AdminDataInitializer implements CommandLineRunner {
         JsonNode root;
         try (var in = new ClassPathResource("lore-seed.json").getInputStream()) {
             root = om.readTree(in.readAllBytes());
-        }
-        if (regionMapper.selectCount(null) == 0) {
-            forEach(root.get("regions"), (node, i) -> {
-                StarRegion e = new StarRegion();
-                e.setCode(txt(node, "code"));
-                e.setName(txt(node, "name"));
-                e.setEn(txt(node, "en"));
-                e.setCoord(txt(node, "coord"));
-                e.setDanger(intv(node, "danger", 1));
-                e.setType(txt(node, "type"));
-                e.setFaction(txt(node, "faction"));
-                e.setResources(json(node, "resources"));
-                e.setDescription(txt(node, "desc"));
-                e.setProgress(intv(node, "progress", 0));
-                e.setX(intv(node, "x", 0));
-                e.setY(intv(node, "y", 0));
-                e.setEvents(json(node, "events"));
-                e.setSortOrder(i);
-                regionMapper.insert(e);
-            });
         }
         if (civMapper.selectCount(null) == 0) {
             forEach(root.get("civs"), (node, i) -> {
@@ -146,6 +123,7 @@ public class AdminDataInitializer implements CommandLineRunner {
         if (artMapper.selectCount(null) == 0) {
             forEach(root.get("arts"), (node, i) -> {
                 SecretArt e = new SecretArt();
+                e.setCode("realm:" + realmId(i));
                 e.setName(txt(node, "name"));
                 e.setType(txt(node, "type"));
                 e.setFromSource(txt(node, "from"));
@@ -176,6 +154,17 @@ public class AdminDataInitializer implements CommandLineRunner {
                 characterMapper.insert(e);
             });
         }
+    }
+
+    /** 秘法按索引归到第 i 个境界（lore-seed.json 中秘法数量与境界数量对齐） */
+    private Long realmId(int index) {
+        var realms = realmMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<CultivateRealm>()
+                        .orderByAsc("sort_order").orderByAsc("id"));
+        if (realms.isEmpty()) {
+            return null;
+        }
+        return realms.get(Math.min(index, realms.size() - 1)).getId();
     }
 
     private interface NodeConsumer {

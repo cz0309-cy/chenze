@@ -28,7 +28,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 前台星域设定数据只读接口：星海探索 / 文明图鉴 / 奇物交易 / 意识修炼 / 人物档案。
+ * 前台星域设定数据只读接口（数据由后台管理系统维护）：
+ * 星海探索 / 文明图鉴 / 奇物交易 / 意识修炼（境界 + 秘法）/ 人物档案。
  * 返回结构与前端 lore.js 保持一致（code → id，JSON 字符串字段 → 数组/对象）。
  */
 @RestController
@@ -56,26 +57,94 @@ public class LoreController {
         try {
             switch (module) {
                 case "regions":
-                    return Result.ok(toList(regionMapper.selectList(orderBy(new QueryWrapper<>(), "code")), StarRegion.class,
-                            "resources", "events"));
+                    return Result.ok(toList(regionMapper.selectList(orderBy(new QueryWrapper<>(), "code")),
+                            StarRegion.class, "resources", "events"));
                 case "civs":
-                    return Result.ok(toList(civMapper.selectList(orderBy(new QueryWrapper<>(), "code")), Civilization.class,
-                            "traits"));
+                    return Result.ok(toList(civMapper.selectList(orderBy(new QueryWrapper<>(), "code")),
+                            Civilization.class, "traits"));
                 case "goods":
-                    return Result.ok(toList(goodMapper.selectList(orderBy(new QueryWrapper<>(), "code")), GoodItem.class));
+                    return Result.ok(toList(goodMapper.selectList(orderBy(new QueryWrapper<>(), "code")),
+                            GoodItem.class));
                 case "realms":
-                    return Result.ok(toList(realmMapper.selectList(orderBy(new QueryWrapper<>())), CultivateRealm.class,
-                            "powers"));
-                case "arts":
-                    return Result.ok(toList(artMapper.selectList(orderBy(new QueryWrapper<>())), SecretArt.class));
+                    return Result.ok(realmsWithArts());
                 case "characters":
-                    return Result.ok(toList(characterMapper.selectList(orderBy(new QueryWrapper<>())), CharacterProfile.class,
+                    return Result.ok(toList(characterMapper.selectList(orderBy(new QueryWrapper<>())),
+                            CharacterProfile.class,
                             "tags", "intro", "stats", "timeline", "relations", "ability"));
                 default:
                     return Result.fail("未知模块：" + module);
             }
         } catch (Exception e) {
             return Result.fail("数据读取失败：" + e.getMessage());
+        }
+    }
+
+    /** 意识修炼：每个境界附带其秘法列表（秘法表不在前台单独暴露） */
+    private List<Map<String, Object>> realmsWithArts() {
+        List<Map<String, Object>> out = toList(
+                realmMapper.selectList(orderBy(new QueryWrapper<>())), CultivateRealm.class, "powers");
+        List<SecretArt> allArts = artMapper.selectList(
+                new QueryWrapper<SecretArt>().orderByAsc("sort_order").orderByAsc("id"));
+        // 秘法归属：code = realm:{境界主键}
+        Map<Long, List<Map<String, Object>>> byRealm = new HashMap<>();
+        List<Map<String, Object>> shared = new ArrayList<>();
+        for (SecretArt art : allArts) {
+            Map<String, Object> a = new HashMap<>();
+            a.put("name", art.getName());
+            a.put("type", art.getType());
+            a.put("from", art.getFromSource());
+            a.put("desc", art.getDescription());
+            a.put("risk", art.getRisk());
+            Long rid = parseRealmId(art.getCode());
+            if (rid == null) {
+                shared.add(a); // 老数据/未归属的秘法，统一附在首个境界下展示
+            } else {
+                byRealm.computeIfAbsent(rid, k -> new ArrayList<>()).add(a);
+            }
+        }
+        // 每个境界都显式带上 arts（无秘法时为空数组），避免前端读到 undefined
+        for (Map<String, Object> realm : out) {
+            Object idVal = realm.get("id"); // 已由 code 转成前端 id
+            List<Map<String, Object>> arts = null;
+            if (idVal instanceof String code) {
+                arts = byRealm.remove(realmIdOfCode(code));
+            }
+            realm.put("arts", arts == null ? new ArrayList<>() : arts);
+        }
+        if (!shared.isEmpty() && !out.isEmpty()) {
+            Object firstArts = out.get(0).get("arts");
+            if (firstArts instanceof List<?> first) {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> target = (List<Map<String, Object>>) first;
+                target.addAll(0, shared);
+            } else {
+                out.get(0).put("arts", shared);
+            }
+        }
+        return out;
+    }
+
+    /** 用前端编号（如 awaken）反查境界主键 */
+    @SuppressWarnings("unchecked")
+    private Long realmIdOfCode(String code) {
+        if (code == null) {
+            return null;
+        }
+        for (CultivateRealm r : realmMapper.selectList(
+                new QueryWrapper<CultivateRealm>().eq("code", code))) {
+            return r.getId();
+        }
+        return null;
+    }
+
+    private Long parseRealmId(String code) {
+        if (code == null || !code.startsWith("realm:")) {
+            return null;
+        }
+        try {
+            return Long.parseLong(code.substring("realm:".length()));
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 

@@ -32,9 +32,9 @@
         <div class="mk-grid">
           <article
             v-for="g in list"
-            :key="g.id"
+            :key="keyOf(g)"
             class="good-card card"
-            :class="{ inCart: cart.includes(g.id) }"
+            :class="{ inCart: cart.includes(keyOf(g)) }"
           >
             <div class="good-top">
               <span class="good-glyph" :style="rarityStyle(g.rarity)">{{ g.glyph }}</span>
@@ -52,10 +52,10 @@
               <button
                 v-if="g.price !== null"
                 class="btn-mini"
-                :class="{ added: cart.includes(g.id) }"
+                :class="{ added: cart.includes(keyOf(g)) }"
                 @click="toggle(g)"
               >
-                {{ cart.includes(g.id) ? '已加入' : '加入采购' }}
+                {{ cart.includes(keyOf(g)) ? '已加入' : '加入采购' }}
               </button>
               <button v-else class="btn-mini ghost" @click="ask(g)">询价</button>
             </div>
@@ -70,7 +70,7 @@
           </div>
 
           <ul v-if="cartItems.length" class="cart-list">
-            <li v-for="g in cartItems" :key="g.id">
+            <li v-for="g in cartItems" :key="keyOf(g)">
               <span class="cg">{{ g.glyph }}</span>
               <div class="ci">
                 <b>{{ g.name }}</b>
@@ -109,13 +109,26 @@ const { show } = useToast()
 // 优先使用后台管理的数据；后端不可用时兜底本地 lore.js
 const goods = ref([...GOODS])
 const cats = ref(['全部', ...new Set(GOODS.map((g) => g.cat))])
+// 后台新增的货品若未填图标/分类，给出兜底，避免前台显示空白
+function normalize(list) {
+  return list.map((g) => ({
+    ...g,
+    glyph: g.glyph || '◈',
+    cat: g.cat || '未分类',
+    seller: g.seller || '匿名卖家',
+    unit: g.unit || '宇宙币',
+    stock: Number(g.stock) || 0,
+    price: g.price === null || g.price === undefined || g.price === '' ? null : Number(g.price)
+  }))
+}
+
 onMounted(async () => {
   try {
     const res = await fetchLore('goods')
     const arr = res.data
     if (Array.isArray(arr) && arr.length) {
-      goods.value = arr
-      cats.value = ['全部', ...new Set(arr.map((g) => g.cat))]
+      goods.value = normalize(arr)
+      cats.value = ['全部', ...new Set(goods.value.map((g) => g.cat))]
     }
   } catch {
     /* 静默降级为本地数据 */
@@ -129,7 +142,10 @@ const cart = ref([])
 const list = computed(() =>
   cat.value === '全部' ? goods.value : goods.value.filter((g) => g.cat === cat.value)
 )
-const cartItems = computed(() => goods.value.filter((g) => cart.value.includes(g.id)))
+// 以货品编号作为唯一键（后台可能新增同名货品）
+const keyOf = (g) => g.id || g.name
+
+const cartItems = computed(() => goods.value.filter((g) => cart.value.includes(keyOf(g))))
 const total = computed(() =>
   cartItems.value.reduce((sum, g) => sum + (g.price === null ? 0 : g.price), 0)
 )
@@ -147,12 +163,13 @@ function rarityStyle(r) {
 }
 
 function toggle(g) {
-  const i = cart.value.indexOf(g.id)
+  const k = keyOf(g)
+  const i = cart.value.indexOf(k)
   if (i >= 0) {
     cart.value.splice(i, 1)
     show(`已从清单移除「${g.name}」`)
   } else {
-    cart.value.push(g.id)
+    cart.value.push(k)
     show(`已加入「${g.name}」`, 'ok')
   }
 }

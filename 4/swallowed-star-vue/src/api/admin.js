@@ -57,11 +57,11 @@ export function adminLogout() {
   return adminRequest('POST', '/admin/auth/logout')
 }
 
-/* ---------------- 数据管理（6 大模块统一 CRUD） ---------------- */
+/* ---------------- 数据管理（四大模块统一 CRUD） ---------------- */
 
 /**
  * 分页列表
- * @param {string} module regions|civs|goods|realms|arts|characters
+ * @param {string} module civs（文明图鉴）|goods（奇物交易）|realms（意识修炼）|characters（人物档案）
  * @param {{keyword?:string, page?:number, size?:number}} params
  */
 export function fetchAdminPage(module, { keyword = '', page = 1, size = 10 } = {}) {

@@ -286,6 +286,20 @@ body{
 }
 .btn-exit:hover{border-color:var(--danger);color:var(--danger)}
 
+/* 导航栏 · 后台管理系统入口 */
+.btn-admin{
+  display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:999px;cursor:pointer;
+  background:linear-gradient(135deg, rgba(255,212,121,.14), rgba(245,166,35,.06));
+  border:1px solid rgba(255,212,121,.45);color:var(--gold);
+  font-size:12.5px;letter-spacing:1px;white-space:nowrap;transition:.2s;
+}
+.btn-admin svg{flex:0 0 auto}
+.btn-admin:hover{
+  background:linear-gradient(135deg, rgba(255,212,121,.28), rgba(245,166,35,.14));
+  box-shadow:0 0 16px rgba(255,212,121,.35);transform:translateY(-1px);
+}
+.btn-admin:active{transform:translateY(0)}
+
 /* 首屏欢迎 + 搜索栏 */
 .home-hero{
   text-align:center;max-width:860px;margin:4vh auto 34px;
@@ -380,6 +394,8 @@ body{
   .nav-menu{display:none}
   .topnav .clock{display:none}
   .nav-user .name{display:none}
+  .btn-admin{padding:0 11px;font-size:12px}
+  .btn-admin span{display:none}
   .home-hero h2{font-size:24px;letter-spacing:3px}
   .home-shell{padding-top:88px}
 }

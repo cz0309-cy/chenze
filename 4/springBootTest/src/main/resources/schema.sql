@@ -142,6 +142,7 @@ CREATE TABLE IF NOT EXISTS cultivate_realm (
 -- 意识修炼 · 秘法
 CREATE TABLE IF NOT EXISTS secret_art (
   id           BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+  code         VARCHAR(32)  DEFAULT NULL            COMMENT '归属标记 realm:{境界主键}，由后台维护',
   name         VARCHAR(64)  NOT NULL                COMMENT '秘法名',
   type         VARCHAR(32)  DEFAULT NULL            COMMENT '类型',
   from_source  VARCHAR(128) DEFAULT NULL            COMMENT '来源',

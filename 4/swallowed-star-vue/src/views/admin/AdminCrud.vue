@@ -114,6 +114,31 @@
                 :placeholder="f.placeholder"
               />
 
+              <!-- 对象数组（如：境界下的秘法传承），随主记录一起保存 -->
+              <div v-else-if="f.type === 'list'" class="list-editor">
+                <div v-for="(row, idx) in listValue(f.key)" :key="idx" class="list-row">
+                  <div class="list-fields">
+                    <label v-for="sub in f.itemFields" :key="sub.key" :class="{ wide: sub.wide }">
+                      <span>{{ sub.label }}</span>
+                      <textarea
+                        v-if="sub.wide"
+                        v-model="row[sub.key]"
+                        rows="2"
+                        :placeholder="sub.placeholder"
+                      ></textarea>
+                      <input v-else v-model="row[sub.key]" type="text" :placeholder="sub.placeholder" />
+                    </label>
+                  </div>
+                  <button type="button" class="btn mini danger list-del" @click="removeListItem(f.key, idx)">
+                    删除
+                  </button>
+                </div>
+                <button type="button" class="btn mini add-item" @click="addListItem(f.key)">
+                  + 添加{{ f.label.split('（')[0] }}
+                </button>
+                <p v-if="!listValue(f.key).length" class="list-empty">暂无，点击上方按钮添加</p>
+              </div>
+
               <input
                 v-else
                 v-model="form[f.key]"
@@ -139,7 +164,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useToast } from '../../composables/useToast.js'
 import {
   createAdminItem,
@@ -173,6 +198,9 @@ function switchGroup(g) {
   page.value = 1
   reload()
 }
+
+// 首次进入模块即加载列表
+onMounted(() => reload())
 
 async function reload() {
   loading.value = true
@@ -214,6 +242,24 @@ function cellText(v) {
   return s.length > 24 ? s.slice(0, 24) + '…' : s
 }
 
+/* ---------------- 对象数组（秘法列表） ---------------- */
+
+function listValue(key) {
+  if (!Array.isArray(form[key])) form[key] = []
+  return form[key]
+}
+
+function addListItem(key) {
+  const f = group.value.fields.find((x) => x.key === key)
+  const row = {}
+  f.itemFields.forEach((sub) => { row[sub.key] = '' })
+  listValue(key).push(row)
+}
+
+function removeListItem(key, idx) {
+  listValue(key).splice(idx, 1)
+}
+
 /* ---------------- 表单编码 / 解码 ---------------- */
 
 function decodeForForm(row) {
@@ -224,6 +270,14 @@ function decodeForForm(row) {
       out[f.key] = Array.isArray(v) ? v.join('\n') : ''
     } else if (f.type === 'json') {
       out[f.key] = v === null || v === undefined ? '' : JSON.stringify(v, null, 2)
+    } else if (f.type === 'list') {
+      out[f.key] = Array.isArray(v)
+        ? v.map((item) => {
+            const o = {}
+            f.itemFields.forEach((sub) => { o[sub.key] = item && item[sub.key] != null ? item[sub.key] : '' })
+            return o
+          })
+        : []
     } else if (f.type === 'number') {
       out[f.key] = v === null || v === undefined ? '' : v
     } else if (f.type === 'switch') {
@@ -255,6 +309,17 @@ function encodeFromForm() {
           throw new Error(`「${f.label}」不是合法 JSON`)
         }
       }
+    } else if (f.type === 'list') {
+      // 丢弃整行为空的项，其余字段去空格
+      out[f.key] = (Array.isArray(v) ? v : [])
+        .map((item) => {
+          const o = {}
+          f.itemFields.forEach((sub) => {
+            o[sub.key] = String(item[sub.key] ?? '').trim()
+          })
+          return o
+        })
+        .filter((o) => Object.values(o).some(Boolean))
     } else if (f.type === 'number') {
       out[f.key] = v === '' || v === null ? (f.nullable ? null : 0) : Number(v)
     } else if (f.type === 'switch') {
@@ -376,7 +441,7 @@ defineExpose({ reload })
   padding: 8px 14px;
   border: 1px solid var(--panel-line);
   border-radius: 10px;
-  background: rgba(10, 15, 36, 0.8);
+  background: rgba(7, 11, 26, 0.9);
   color: var(--text);
   outline: none;
 }
@@ -427,7 +492,10 @@ defineExpose({ reload })
 .table-wrap {
   border: 1px solid var(--panel-line);
   border-radius: 14px;
-  background: var(--panel);
+  background: rgba(7, 11, 26, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
   overflow: auto;
   min-height: 120px;
 }
@@ -451,7 +519,7 @@ th {
   font-weight: 500;
   font-size: 12px;
   letter-spacing: 0.06em;
-  background: rgba(10, 15, 36, 0.5);
+  background: rgba(14, 21, 46, 0.92);
 }
 tbody tr:hover {
   background: rgba(102, 224, 255, 0.05);
@@ -531,8 +599,8 @@ tbody tr:last-child td {
   grid-column: 1 / -1;
 }
 .form-field label {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 12.5px;
+  color: #aab6d8;
   letter-spacing: 0.05em;
 }
 .req {
@@ -584,5 +652,75 @@ tbody tr:last-child td {
 .form-error {
   color: var(--danger);
   font-size: 12px;
+}
+
+/* 对象数组编辑器（秘法传承） */
+.list-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.list-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 12px 10px;
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  background: rgba(6, 10, 26, 0.55);
+}
+.list-fields {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 10px;
+}
+.list-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11.5px;
+  color: #aab6d8;
+}
+.list-fields label.wide {
+  grid-column: 1 / -1;
+}
+.list-fields input,
+.list-fields textarea {
+  padding: 7px 10px;
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  background: rgba(10, 15, 36, 0.85);
+  color: var(--text);
+  font-size: 12.5px;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+}
+.list-fields textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+.list-fields input:focus,
+.list-fields textarea:focus {
+  border-color: rgba(255, 212, 121, 0.5);
+}
+.list-del {
+  margin-top: 18px;
+  flex-shrink: 0;
+}
+.add-item {
+  align-self: flex-start;
+  color: var(--cyan);
+  border-color: rgba(102, 224, 255, 0.35);
+}
+.list-empty {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+@media (max-width: 760px) {
+  .list-fields {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

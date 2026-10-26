@@ -1,49 +1,17 @@
 /**
- * 后台管理模块配置：
- * 每个模块可包含多个数据组（group），每组对应后端一个 CRUD module。
- * 字段类型：text / textarea / number / lines(字符串数组，一行一条) / json / select / switch
+ * 后台管理模块配置：与前台展示的四大功能一一对应。
+ * 每个模块对应后端一个 CRUD 地址（/api/admin/lore/{key}）。
+ * 字段类型：text / textarea / number / lines(字符串数组，一行一条) / json / select / switch / list(对象数组，仅境界秘法)
+ * 字段 key 与前台 lore.js 的字段名保持一致，保存后前台立即生效。
  */
 
 export const ADMIN_MODULES = [
   {
-    key: 'regions',
-    title: '星海探索',
-    icon: '🧭',
-    groups: [
-      {
-        key: 'regions',
-        label: '星域',
-        columns: [
-          { key: 'code', label: '标识' },
-          { key: 'name', label: '名称' },
-          { key: 'coord', label: '坐标' },
-          { key: 'type', label: '类型' },
-          { key: 'danger', label: '危险度' },
-          { key: 'progress', label: '进度%' }
-        ],
-        fields: [
-          { key: 'code', label: '标识 code', type: 'text', required: true, placeholder: '如 earth（对应前台 id）' },
-          { key: 'name', label: '名称', type: 'text', required: true },
-          { key: 'en', label: '英文名', type: 'text' },
-          { key: 'coord', label: '坐标编号', type: 'text', placeholder: '如 α-001' },
-          { key: 'danger', label: '危险度 1-5', type: 'number' },
-          { key: 'type', label: '星域类型', type: 'text' },
-          { key: 'faction', label: '掌控势力', type: 'text' },
-          { key: 'progress', label: '探索进度 0-100', type: 'number' },
-          { key: 'x', label: '星图 X', type: 'number' },
-          { key: 'y', label: '星图 Y', type: 'number' },
-          { key: 'resources', label: '资源（每行一条）', type: 'lines', full: true },
-          { key: 'events', label: '星域事件（每行一条）', type: 'lines', full: true },
-          { key: 'desc', label: '描述', type: 'textarea', full: true }
-        ],
-        blank: () => ({ danger: 1, progress: 0, x: 0, y: 0, resources: [], events: [] })
-      }
-    ]
-  },
-  {
     key: 'civs',
     title: '文明图鉴',
     icon: '📖',
+    subtitle: 'CIVILIZATION CODEX',
+    desc: '维护文明编号、类型、立场、危险度与图鉴批注，前台「文明图鉴」页实时读取。',
     groups: [
       {
         key: 'civs',
@@ -51,20 +19,20 @@ export const ADMIN_MODULES = [
         columns: [
           { key: 'code', label: '编号' },
           { key: 'name', label: '名称' },
-          { key: 'type', label: '类型' },
+          { key: 'type', label: '文明类型' },
           { key: 'level', label: '等级' },
           { key: 'statusText', label: '立场' },
           { key: 'danger', label: '危险度' }
         ],
         fields: [
-          { key: 'code', label: '编号 code', type: 'text', required: true, placeholder: '如 C-010' },
+          { key: 'code', label: '编号 code', type: 'text', required: true, placeholder: '如 C-010（前台以此为唯一标识，不可重复）' },
           { key: 'name', label: '名称', type: 'text', required: true },
           { key: 'en', label: '英文名', type: 'text' },
-          { key: 'type', label: '文明类型', type: 'text' },
+          { key: 'type', label: '文明类型', type: 'text', placeholder: '如 人类文明 / 异族文明 / 未知' },
           { key: 'level', label: '等级', type: 'text', placeholder: '如 Ⅷ · 疆域霸主' },
           {
             key: 'status',
-            label: '立场',
+            label: '立场标识',
             type: 'select',
             options: [
               { value: 'ally', label: 'ally · 盟友' },
@@ -73,11 +41,11 @@ export const ADMIN_MODULES = [
               { value: 'unknown', label: 'unknown · 未知' }
             ]
           },
-          { key: 'statusText', label: '立场文案', type: 'text' },
+          { key: 'statusText', label: '立场文案', type: 'text', placeholder: '如 盟友 / 中立 / 敌对' },
           { key: 'span', label: '疆域范围', type: 'text' },
           { key: 'danger', label: '危险度 1-5', type: 'number' },
-          { key: 'desc', label: '描述', type: 'textarea', full: true },
-          { key: 'traits', label: '特征（每行一条）', type: 'lines', full: true },
+          { key: 'description', label: '描述', type: 'textarea', full: true },
+          { key: 'traits', label: '关键特征（每行一条）', type: 'lines', full: true },
           { key: 'relation', label: '与人类关系', type: 'textarea', full: true },
           { key: 'note', label: '图鉴批注', type: 'textarea', full: true }
         ],
@@ -89,6 +57,8 @@ export const ADMIN_MODULES = [
     key: 'goods',
     title: '奇物交易',
     icon: '🗡',
+    subtitle: 'EXOTIC MERCHANDISE',
+    desc: '维护货品编号、稀有度、价格、库存与热销标记，前台「奇物交易」页实时读取。',
     groups: [
       {
         key: 'goods',
@@ -104,7 +74,7 @@ export const ADMIN_MODULES = [
           { key: 'hot', label: '热销' }
         ],
         fields: [
-          { key: 'code', label: '编号 code', type: 'text', required: true, placeholder: '如 G-12' },
+          { key: 'code', label: '编号 code', type: 'text', required: true, placeholder: '如 G-12（前台以此为唯一标识，不可重复）' },
           { key: 'name', label: '名称', type: 'text', required: true },
           { key: 'glyph', label: '图标 emoji', type: 'text', placeholder: '如 🗡' },
           { key: 'cat', label: '分类', type: 'text', placeholder: '兵器 / 传承 / 材料…' },
@@ -119,54 +89,53 @@ export const ADMIN_MODULES = [
           { key: 'seller', label: '卖家', type: 'text' },
           { key: 'stock', label: '库存', type: 'number' },
           { key: 'hot', label: '热销推荐', type: 'switch' },
-          { key: 'desc', label: '描述', type: 'textarea', full: true }
+          { key: 'description', label: '描述', type: 'textarea', full: true }
         ],
         blank: () => ({ unit: '宇宙币', stock: 0, hot: 0 })
       }
     ]
   },
   {
-    key: 'cultivate',
+    key: 'realms',
     title: '意识修炼',
     icon: '🌀',
+    subtitle: 'CONSCIOUS CULTIVATION',
+    desc: '维护七境阶梯的精神力门槛、突破关卡、代价，以及每境可修习的秘法传承。',
     groups: [
       {
         key: 'realms',
-        label: '境界阶梯',
+        label: '境界',
         columns: [
-          { key: 'code', label: '标识' },
+          { key: 'code', label: '编号' },
           { key: 'name', label: '境界' },
-          { key: 'min', label: '门槛(万)' },
-          { key: 'gate', label: '突破关卡' }
+          { key: 'minPower', label: '门槛(万)' },
+          { key: 'gate', label: '突破关卡' },
+          { key: 'arts', label: '秘法' }
         ],
         fields: [
-          { key: 'code', label: '标识 code', type: 'text', required: true, placeholder: '如 awaken' },
+          { key: 'code', label: '编号 code', type: 'text', required: true, placeholder: '如 awaken（前台以此为唯一标识，不可重复）' },
           { key: 'name', label: '境界名', type: 'text', required: true },
           { key: 'en', label: '英文名', type: 'text' },
-          { key: 'min', label: '精神力门槛（万念力单位）', type: 'number' },
+          { key: 'minPower', label: '精神力门槛（万念力单位）', type: 'number' },
           { key: 'gate', label: '突破关卡描述', type: 'textarea', full: true },
           { key: 'powers', label: '境界能力（每行一条）', type: 'lines', full: true },
+          {
+            key: 'arts',
+            label: '秘法传承（可增删，随境界一起保存）',
+            type: 'list',
+            full: true,
+            itemFields: [
+              { key: 'name', label: '秘法名', required: true },
+              { key: 'type', label: '类型', placeholder: '如 法则 · 顶级' },
+              { key: 'from', label: '来源' },
+              { key: 'desc', label: '描述', wide: true },
+              { key: 'risk', label: '风险', wide: true }
+            ]
+          },
           { key: 'cost', label: '代价', type: 'textarea', full: true },
-          { key: 'desc', label: '描述', type: 'textarea', full: true }
+          { key: 'description', label: '描述', type: 'textarea', full: true }
         ],
-        blank: () => ({ min: 0, powers: [] })
-      },
-      {
-        key: 'arts',
-        label: '秘法传承',
-        columns: [
-          { key: 'name', label: '秘法' },
-          { key: 'type', label: '类型' },
-          { key: 'from', label: '来源' }
-        ],
-        fields: [
-          { key: 'name', label: '秘法名', type: 'text', required: true },
-          { key: 'type', label: '类型', type: 'text', placeholder: '如 法则 · 顶级' },
-          { key: 'from', label: '来源', type: 'text' },
-          { key: 'desc', label: '描述', type: 'textarea', full: true },
-          { key: 'risk', label: '风险', type: 'textarea', full: true }
-        ],
-        blank: () => ({})
+        blank: () => ({ minPower: 0, powers: [], arts: [] })
       }
     ]
   },
@@ -174,12 +143,14 @@ export const ADMIN_MODULES = [
     key: 'characters',
     title: '人物档案',
     icon: '👤',
+    subtitle: 'CHARACTER ARCHIVE',
+    desc: '维护人物头衔、境界、阵营，以及能力条、时间线、关系网等档案细节。',
     groups: [
       {
         key: 'characters',
         label: '人物',
         columns: [
-          { key: 'code', label: '标识' },
+          { key: 'code', label: '编号' },
           { key: 'glyph', label: '' },
           { key: 'name', label: '姓名' },
           { key: 'title', label: '头衔' },
@@ -187,7 +158,7 @@ export const ADMIN_MODULES = [
           { key: 'camp', label: '阵营' }
         ],
         fields: [
-          { key: 'code', label: '标识 code', type: 'text', required: true, placeholder: '如 luofeng' },
+          { key: 'code', label: '编号 code', type: 'text', required: true, placeholder: '如 luofeng（前台以此为唯一标识，不可重复）' },
           { key: 'name', label: '姓名', type: 'text', required: true },
           { key: 'en', label: '英文名', type: 'text' },
           { key: 'title', label: '头衔', type: 'text' },
