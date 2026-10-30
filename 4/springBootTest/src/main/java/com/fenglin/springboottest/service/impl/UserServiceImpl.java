@@ -22,7 +22,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         User user = new User();
         user.setUsername(username);
-        user.setPassword(encoder.encode(password));
+        // 明文存储（需求要求不加密）
+        user.setPassword(password);
+        // 注册用户默认权限=1（普通用户），仅后台置 0 可进后台管理系统
+        user.setPermission(1);
         user.setNickname(username);
         user.setCreatedAt(LocalDateTime.now());
         save(user);
@@ -35,9 +38,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null) {
             return null;
         }
-        if (!encoder.matches(password, user.getPassword())) {
-            return null;
+        String stored = user.getPassword();
+        // 明文优先匹配（需求要求明文存储）
+        if (password != null && password.equals(stored)) {
+            return user;
         }
-        return user;
+        // 兼容历史 BCrypt 密文（首次切换明文时旧账号仍可登录）
+        if (stored != null && stored.startsWith("$2") && encoder.matches(password, stored)) {
+            return user;
+        }
+        return null;
     }
 }

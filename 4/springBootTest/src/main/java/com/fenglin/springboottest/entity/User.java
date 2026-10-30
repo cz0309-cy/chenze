@@ -23,6 +23,12 @@ public class User {
     /** 昵称 */
     private String nickname;
 
+    /**
+     * 权限：1=默认用户（普通星域战士），0=管理员（可进入后台管理系统）。
+     * 注册用户默认为 1。
+     */
+    private Integer permission;
+
     /** 创建时间 */
     private LocalDateTime createdAt;
 }

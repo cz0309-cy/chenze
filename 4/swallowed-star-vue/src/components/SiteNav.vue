@@ -33,7 +33,7 @@
     <span class="spacer"></span>
     <span class="clock">{{ clock }}</span>
 
-    <button class="btn-admin" type="button" title="进入后台管理系统" @click="goAdmin">
+    <button v-if="isAdmin" class="btn-admin" type="button" title="进入后台管理系统" @click="goAdmin">
       <svg
         width="14"
         height="14"
@@ -89,12 +89,16 @@ const navs = [
   { key: 'codex', label: '文明图鉴', to: '/codex' },
   { key: 'market', label: '奇物交易', to: '/market' },
   { key: 'cultivate', label: '意识修炼', to: '/cultivate' },
-  { key: 'character', label: '人物档案', to: '/character' }
+  { key: 'character', label: '人物档案', to: '/character' },
+  { key: 'bag', label: '我的背包', to: '/bag' }
 ]
 
 const session = getSession()
 const nickname = ref((session && (session.nickname || session.username)) || '星际战士')
 const avatarChar = computed(() => (nickname.value || '星')[0])
+
+// 仅权限=0（管理员）可见「后台管理系统」按钮；权限=1（默认用户）不可见且无法进入后台
+const isAdmin = computed(() => session && session.permission === 0)
 
 const clock = ref('')
 let timer = null

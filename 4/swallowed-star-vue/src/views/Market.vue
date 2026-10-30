@@ -90,6 +90,7 @@
             <b>{{ total.toLocaleString() }} <i>宇宙币</i></b>
           </div>
           <button class="btn-gold" :disabled="!cart.length" @click="checkout">确认结算</button>
+          <router-link class="bag-link" to="/bag">查看我的背包 →</router-link>
           <p class="cart-tip">演示交易：不产生真实扣款，余额仅存于当前页面。</p>
         </aside>
       </div>
@@ -102,6 +103,7 @@ import { computed, onMounted, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
 import { GOODS } from '../data/lore.js'
 import { fetchLore } from '../api/lore.js'
+import { buyItems } from '../api/bag.js'
 import { useToast } from '../composables/useToast.js'
 
 const { show } = useToast()
@@ -184,8 +186,42 @@ function checkout() {
     show('余额不足，宇宙币可不会凭空长出来', 'err')
     return
   }
-  balance.value -= total.value
-  show(`结算成功，共 ${total.value.toLocaleString()} 宇宙币`, 'ok')
-  cart.value = []
+  // 组装采购清单快照发给后端，写入当前登录用户背包（同款累加数量）
+  const items = cartItems.value.map((g) => ({
+    code: keyOf(g),
+    name: g.name,
+    glyph: g.glyph,
+    cat: g.cat,
+    rarity: g.rarity,
+    price: g.price === null || g.price === undefined ? null : g.price,
+    unit: g.unit,
+    seller: g.seller,
+    quantity: 1
+  }))
+  buyItems(items)
+    .then(() => {
+      balance.value -= total.value
+      show(`结算成功，共 ${total.value.toLocaleString()} 宇宙币，已存入背包`, 'ok')
+      cart.value = []
+    })
+    .catch((e) => {
+      show((e && e.message) || '结算失败，请确认已登录后再试', 'err')
+    })
 }
 </script>
+
+<style scoped>
+.bag-link {
+  display: block;
+  text-align: center;
+  margin: 10px 16px 0;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: var(--cyan);
+  text-decoration: none;
+  transition: 0.2s;
+}
+.bag-link:hover {
+  color: var(--gold);
+}
+</style>

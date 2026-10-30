@@ -320,13 +320,21 @@ function glyphStyle(item) {
 }
 
 /* ===== 模块入口 ===== */
-const modules = [
-  { to: '/explore', name: '星海探索', desc: '七片星域 · 星图与航行日志', icon: '🧭' },
-  { to: '/codex', name: '文明图鉴', desc: '人类 / 异族 / 未知者档案', icon: '📖' },
-  { to: '/market', name: '奇物交易', desc: '兵器 · 传承 · 材料 · 载具', icon: '💎' },
-  { to: '/cultivate', name: '意识修炼', desc: '七境阶梯 · 念力推演', icon: '🧠' },
-  { to: '/character', name: '人物档案', desc: '罗峰与同行者的人物志', icon: '👤' }
-]
+const isAdmin = computed(() => session && session.permission === 0)
+const modules = computed(() => {
+  const list = [
+    { to: '/explore', name: '星海探索', desc: '七片星域 · 星图与航行日志', icon: '🧭' },
+    { to: '/codex', name: '文明图鉴', desc: '人类 / 异族 / 未知者档案', icon: '📖' },
+    { to: '/market', name: '奇物交易', desc: '兵器 · 传承 · 材料 · 载具', icon: '💎' },
+    { to: '/cultivate', name: '意识修炼', desc: '七境阶梯 · 念力推演', icon: '🧠' },
+    { to: '/character', name: '人物档案', desc: '罗峰与同行者的人物志', icon: '👤' }
+  ]
+  // 仅权限=0（管理员）可见「后台管理系统」入口；权限=1 默认用户不可见也无法进入
+  if (isAdmin.value) {
+    list.push({ to: '/admin/login', name: '后台管理系统', desc: '数据中枢 · 内容管理通道', icon: '🛡️' })
+  }
+  return list
+})
 
 onMounted(async () => {
   loadOverview()

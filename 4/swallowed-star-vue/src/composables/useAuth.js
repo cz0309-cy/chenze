@@ -7,9 +7,9 @@ const SESSION_KEY = 'ss_session'
 export async function login(username, password) {
   const res = await loginApi(username, password)
   if (!res || !res.data) return false
-  const { token, username: un, nickname } = res.data
+  const { token, username: un, nickname, permission } = res.data
   localStorage.setItem(TOKEN_KEY, token)
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ username: un, nickname: nickname || un }))
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ username: un, nickname: nickname || un, permission }))
   return true
 }
 
@@ -37,8 +37,8 @@ export async function fetchMe() {
   try {
     const res = await meApi()
     if (res && res.data) {
-      const { username, nickname } = res.data
-      localStorage.setItem(SESSION_KEY, JSON.stringify({ username, nickname: nickname || username }))
+      const { username, nickname, permission } = res.data
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ username, nickname: nickname || username, permission }))
       return res.data
     }
   } catch { /* token 失效等 */ }

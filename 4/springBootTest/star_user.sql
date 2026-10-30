@@ -15,18 +15,26 @@ USE swallowed_star;
 CREATE TABLE IF NOT EXISTS star_user (
   id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
   username    VARCHAR(32)  NOT NULL                COMMENT '账号',
-  password    VARCHAR(128) NOT NULL                COMMENT '密码（BCrypt 加密存储）',
+  password    VARCHAR(128) NOT NULL                COMMENT '密码（明文存储，项目要求不加密）',
   nickname    VARCHAR(64)  DEFAULT NULL            COMMENT '昵称',
+  permission  INT          NOT NULL DEFAULT 1      COMMENT '权限：1=默认用户，0=管理员（可进后台）',
   created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (id),
   UNIQUE KEY uk_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='星域用户表';
 
+-- 3.1) 兼容已存在的旧表：若缺少 permission 列则补充（幂等）
+SET @exist_perm := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'star_user' AND COLUMN_NAME = 'permission');
+SET @sql_perm := IF(@exist_perm = 0, 'ALTER TABLE star_user ADD COLUMN permission INT NOT NULL DEFAULT 1 COMMENT \'权限：1=默认用户，0=管理员（可进后台）\'', 'SELECT 1');
+PREPARE stmt_perm FROM @sql_perm;
+EXECUTE stmt_perm;
+DEALLOCATE PREPARE stmt_perm;
+
 -- 4) 演示账号说明：
---    演示账号 admin / 123456 由后端在「首次启动」时自动创建（密码经 BCrypt 加密），
---    无需手动插入。如需手动插入，请使用 BCrypt 加密后的密文，例如：
---    INSERT INTO star_user (username, password, nickname)
---    VALUES ('admin', '$2a$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', '星河守护者');
+--    演示账号 admin / 123456 由后端在「首次启动」时自动创建（明文存储，权限=0 可进后台），
+--    无需手动插入。如需手动插入，例如：
+--    INSERT INTO star_user (username, password, nickname, permission)
+--    VALUES ('admin', '123456', '星河守护者', 0);
 
 -- 5) 首页数据表（星域条目 + 热词，幂等）
 --    后端 schema.sql 启动时同样会自动建这两张表；条目数据由 HomeDataInitializer 首次启动写入。
@@ -136,6 +144,25 @@ CREATE TABLE IF NOT EXISTS good_item (
   PRIMARY KEY (id),
   UNIQUE KEY uk_code (code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='奇物交易·货品表';
+
+-- 背包 · 用户在奇物交易所购买的货品（每件货品每个用户一条，重复购买累加数量）
+CREATE TABLE IF NOT EXISTS user_bag (
+  id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+  user_id     BIGINT       NOT NULL                COMMENT '用户ID（star_user.id）',
+  item_code   VARCHAR(32)  NOT NULL                COMMENT '货品编号（good_item.code，对应前端 id）',
+  name        VARCHAR(64)  NOT NULL                COMMENT '货品名称（购买时快照）',
+  glyph       VARCHAR(16)  DEFAULT NULL            COMMENT '图标（emoji，快照）',
+  cat         VARCHAR(32)  DEFAULT NULL            COMMENT '分类（快照）',
+  rarity      VARCHAR(16)  DEFAULT NULL            COMMENT '稀有度（快照）',
+  price       BIGINT       DEFAULT NULL            COMMENT '单价（快照，NULL 为面议）',
+  unit        VARCHAR(16)  DEFAULT '宇宙币'        COMMENT '货币单位（快照）',
+  seller      VARCHAR(128) DEFAULT NULL            COMMENT '卖家（快照）',
+  quantity    INT          NOT NULL DEFAULT 1      COMMENT '数量（重复购买累加）',
+  bought_at   DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '最近一次购买时间',
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_user_item (user_id, item_code),
+  KEY idx_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='背包·用户奇物表';
 
 CREATE TABLE IF NOT EXISTS cultivate_realm (
   id           BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',

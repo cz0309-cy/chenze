@@ -7,6 +7,7 @@ import Codex from '../views/Codex.vue'
 import Market from '../views/Market.vue'
 import Cultivate from '../views/Cultivate.vue'
 import Character from '../views/Character.vue'
+import Bag from '../views/Bag.vue'
 import AdminLogin from '../views/admin/AdminLogin.vue'
 import AdminLayout from '../views/admin/AdminLayout.vue'
 import AdminCrud from '../views/admin/AdminCrud.vue'
@@ -32,6 +33,7 @@ const routes = [
   { path: '/market', name: 'market', component: Market, meta: { auth: true } },
   { path: '/cultivate', name: 'cultivate', component: Cultivate, meta: { auth: true } },
   { path: '/character', name: 'character', component: Character, meta: { auth: true } },
+  { path: '/bag', name: 'bag', component: Bag, meta: { auth: true } },
   // 后台管理系统（仅登录，无注册功能）
   { path: '/admin/login', name: 'admin-login', component: AdminLogin },
   {

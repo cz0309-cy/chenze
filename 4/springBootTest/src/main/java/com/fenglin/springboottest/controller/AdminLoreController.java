@@ -6,18 +6,18 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fenglin.springboottest.common.PageResult;
 import com.fenglin.springboottest.common.Result;
-import com.fenglin.springboottest.entity.AdminUser;
 import com.fenglin.springboottest.entity.CharacterProfile;
 import com.fenglin.springboottest.entity.Civilization;
 import com.fenglin.springboottest.entity.CultivateRealm;
 import com.fenglin.springboottest.entity.GoodItem;
 import com.fenglin.springboottest.entity.SecretArt;
-import com.fenglin.springboottest.mapper.AdminUserMapper;
+import com.fenglin.springboottest.entity.User;
 import com.fenglin.springboottest.mapper.CharacterProfileMapper;
 import com.fenglin.springboottest.mapper.CivilizationMapper;
 import com.fenglin.springboottest.mapper.CultivateRealmMapper;
 import com.fenglin.springboottest.mapper.GoodItemMapper;
 import com.fenglin.springboottest.mapper.SecretArtMapper;
+import com.fenglin.springboottest.mapper.UserMapper;
 import com.fenglin.springboottest.service.AdminTokenStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -54,7 +54,7 @@ public class AdminLoreController {
     @Autowired
     private AdminTokenStore adminTokenStore;
     @Autowired
-    private AdminUserMapper adminUserMapper;
+    private UserMapper userMapper;
 
     @Autowired
     private CivilizationMapper civMapper;
@@ -195,8 +195,9 @@ public class AdminLoreController {
     // ------------------------------------------------------------
 
     private boolean checkAdmin(String auth) {
-        AdminUser admin = AdminAuthController.currentAdmin(adminTokenStore, adminUserMapper, auth);
-        return admin != null;
+        User admin = AdminAuthController.currentAdmin(adminTokenStore, userMapper, auth);
+        // 仅 star_user 中 permission=0 的管理员可操作后台
+        return admin != null && admin.getPermission() != null && admin.getPermission() == 0;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
