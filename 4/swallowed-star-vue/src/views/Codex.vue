@@ -30,6 +30,18 @@
         </div>
       </div>
 
+      <!-- 势力概览 -->
+      <div class="cx-overview">
+        <div class="ov-cell" v-for="t in typeStats" :key="t[0]">
+          <span>{{ t[0] }}</span>
+          <b>{{ t[1] }}</b>
+        </div>
+        <div class="ov-cell hostile">
+          <span>敌对势力</span>
+          <b class="danger-txt">{{ hostileCount }}</b>
+        </div>
+      </div>
+
       <div class="cx-layout">
         <div class="cx-grid">
           <article
@@ -42,6 +54,12 @@
             <div class="cx-top">
               <span class="cx-id">{{ c.id }}</span>
               <span class="st" :class="'st-' + c.status">{{ c.statusText }}</span>
+              <button
+                class="fav-btn"
+                :class="{ on: favs.has(c.id) }"
+                @click.stop="toggleFav(c.id)"
+                :title="favs.has(c.id) ? '取消收藏' : '收藏'"
+              >{{ favs.has(c.id) ? '★' : '☆' }}</button>
             </div>
             <h4>{{ c.name }}</h4>
             <div class="cx-en">{{ c.en }}</div>
@@ -62,7 +80,12 @@
             <span class="cx-id">{{ current.id }} / ENTRY</span>
             <span class="danger-txt">{{ '★'.repeat(current.danger) }}</span>
           </div>
-          <h2>{{ current.name }}</h2>
+          <div class="cx-detail-title">
+            <h2>{{ current.name }}</h2>
+            <button class="fav-btn big" :class="{ on: favs.has(current.id) }" @click="toggleFav(current.id)">
+              {{ favs.has(current.id) ? '★ 已收藏' : '☆ 收藏' }}
+            </button>
+          </div>
           <div class="cx-den">{{ current.en }} · {{ current.type }}</div>
 
           <div class="cx-fields">
@@ -103,12 +126,33 @@ const filters = [
   { key: 'all', label: '全部条目' },
   { key: 'human', label: '人类' },
   { key: 'alien', label: '异族' },
-  { key: 'unknown', label: '未知' }
+  { key: 'unknown', label: '未知' },
+  { key: 'fav', label: '★ 已收藏' }
 ]
 
 const filter = ref('all')
 const keyword = ref('')
 const currentId = ref('C-001')
+
+// 收藏（本地 localStorage 持久化）
+const STORE_KEY = 'ss_codex_favs'
+const favs = ref(loadFavs())
+function loadFavs() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(STORE_KEY) || '[]'))
+  } catch {
+    return new Set()
+  }
+}
+function saveFavs() {
+  localStorage.setItem(STORE_KEY, JSON.stringify([...favs.value]))
+}
+function toggleFav(id) {
+  if (favs.value.has(id)) favs.value.delete(id)
+  else favs.value.add(id)
+  favs.value = new Set(favs.value)
+  saveFavs()
+}
 
 // 优先使用后台管理的数据；后端不可用时兜底本地 lore.js
 const civs = ref([...CIVS])
@@ -127,11 +171,11 @@ onMounted(async () => {
 const list = computed(() => {
   const k = keyword.value.trim()
   return civs.value.filter((c) => {
-    const okType =
-      filter.value === 'all' ||
-      (filter.value === 'human' && c.type.indexOf('人类') === 0) ||
-      (filter.value === 'alien' && c.type.indexOf('异族') === 0) ||
-      (filter.value === 'unknown' && c.type.indexOf('未知') === 0)
+    let okType = true
+    if (filter.value === 'human') okType = c.type.indexOf('人类') === 0
+    else if (filter.value === 'alien') okType = c.type.indexOf('异族') === 0
+    else if (filter.value === 'unknown') okType = c.type.indexOf('未知') === 0
+    else if (filter.value === 'fav') okType = favs.value.has(c.id)
     const okKey = !k || `${c.name}${c.en}${c.desc}${c.type}`.toLowerCase().includes(k.toLowerCase())
     return okType && okKey
   })
@@ -141,4 +185,15 @@ const current = computed(() => {
   const hit = civs.value.find((c) => c.id === currentId.value)
   return hit || list.value[0] || civs.value[0]
 })
+
+// 势力类型统计概览
+const typeStats = computed(() => {
+  const map = {}
+  civs.value.forEach((c) => {
+    const t = c.type
+    map[t] = (map[t] || 0) + 1
+  })
+  return Object.entries(map).sort((a, b) => b[1] - a[1])
+})
+const hostileCount = computed(() => civs.value.filter((c) => c.status === 'hostile').length)
 </script>

@@ -9,12 +9,26 @@
         <p>星海里的每一个人，都是一段被逼出来的历史。这里记录他们的来路、执念，以及代价。</p>
       </header>
 
+      <div class="chr-toolbar">
+        <div class="chips">
+          <button
+            v-for="c in camps"
+            :key="c"
+            class="chip"
+            :class="{ on: campFilter === c }"
+            @click="campFilter = c"
+          >
+            {{ c === 'all' ? '全部阵营' : c }}
+          </button>
+        </div>
+      </div>
+
       <div class="chr-tabs">
         <button
-          v-for="c in characters"
+          v-for="c in filteredChars"
           :key="c.id"
           class="chr-tab"
-          :class="{ on: c.id === currentId }"
+          :class="{ on: c.id === currentId, cmp: compareIds.includes(c.id) }"
           @click="currentId = c.id"
         >
           <span class="gt">{{ c.glyph }}</span>
@@ -43,6 +57,9 @@
           <div class="chr-title">
             <h2>{{ current.name }}</h2>
             <span class="chr-sub">{{ current.title }}</span>
+            <button class="cmp-btn" :class="{ on: compareIds.includes(current.id) }" @click="toggleCompare(current.id)">
+              {{ compareIds.includes(current.id) ? '✓ 对比中' : '+ 加入对比' }}
+            </button>
           </div>
 
           <div class="chip-row chr-tags">
@@ -103,6 +120,34 @@
           </ul>
         </section>
       </div>
+
+      <!-- 人物对比 -->
+      <section class="card cmp-panel">
+        <div class="card-head">
+          <h3>人物对比</h3>
+          <span>{{ compareList.length }}/2 已选 · 点击「+ 加入对比」选择</span>
+        </div>
+        <div v-if="compareList.length" class="cmp-table">
+          <div class="cmp-row cmp-head">
+            <span class="cmp-label">属性</span>
+            <div v-for="c in compareList" :key="c.id" class="cmp-col">
+              <b>{{ c.glyph }} {{ c.name }}</b>
+              <em>{{ c.realm }}</em>
+            </div>
+          </div>
+          <div class="cmp-row" v-for="label in compareLabels" :key="label">
+            <span class="cmp-label">{{ label }}</span>
+            <div v-for="c in compareList" :key="c.id" class="cmp-col">
+              <span class="cmp-val">{{ statOf(c, label) }}</span>
+              <div class="cmp-bar"><i :style="{ width: statOf(c, label) + '%' }" /></div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="cart-empty">
+          <span>◇</span>
+          尚未选择对比对象。在人物卡片右上角点击「+ 加入对比」，最多可对比两人。
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -150,4 +195,46 @@ const currentId = ref('luofeng')
 const current = computed(
   () => characters.value.find((c) => c.id === currentId.value) || characters.value[0]
 )
+
+// ---------- 增强：阵营筛选 + 人物对比 ----------
+const campFilter = ref('all')
+const camps = computed(() => {
+  const set = new Set()
+  characters.value.forEach((c) => {
+    const camp = c.camp ? c.camp.split('·').map((s) => s.trim())[0] : '其他'
+    set.add(camp)
+  })
+  return ['all', ...set]
+})
+function campOf(c) {
+  return c.camp ? c.camp.split('·').map((s) => s.trim())[0] : '其他'
+}
+const filteredChars = computed(() => {
+  if (campFilter.value === 'all') return characters.value
+  return characters.value.filter((c) => campOf(c) === campFilter.value)
+})
+
+// 对比：最多选两人
+const compareIds = ref([])
+function toggleCompare(id) {
+  const i = compareIds.value.indexOf(id)
+  if (i >= 0) compareIds.value.splice(i, 1)
+  else {
+    if (compareIds.value.length >= 2) compareIds.value.shift()
+    compareIds.value.push(id)
+  }
+}
+const compareList = computed(() =>
+  compareIds.value.map((id) => characters.value.find((c) => c.id === id)).filter(Boolean)
+)
+// 对比用的统一 stats 标签（并集）
+const compareLabels = computed(() => {
+  const set = new Set()
+  compareList.value.forEach((c) => c.stats.forEach((s) => set.add(s.label)))
+  return [...set]
+})
+function statOf(c, label) {
+  const s = c.stats.find((x) => x.label === label)
+  return s ? s.value : 0
+}
 </script>

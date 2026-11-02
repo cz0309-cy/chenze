@@ -95,6 +95,45 @@
         </section>
       </div>
 
+      <!-- 实修冥想 -->
+      <section class="card med-card">
+        <div class="card-head">
+          <h3>实修冥想</h3>
+          <span>点击「入定」积累念力，突破境界</span>
+        </div>
+        <div class="med-body">
+          <div class="med-state">
+            <div class="med-realm">
+              <span>当前境界</span>
+              <b>{{ medCurRealm.name }}</b>
+            </div>
+            <div class="med-power">
+              <span>念力修为</span>
+              <b>{{ fmtPower(power) }}</b>
+            </div>
+          </div>
+
+          <div class="progress-line">
+            <div class="pl-top">
+              <span>{{ medNextRealm ? '距离「' + medNextRealm.name + '」' : '已达已知最高境界' }}</span>
+              <b>{{ breakthroughProgress }}%</b>
+            </div>
+            <div class="pl-bar"><i :style="{ width: breakthroughProgress + '%' }" /></div>
+          </div>
+
+          <div class="med-actions">
+            <button class="btn-gold" :class="{ active: meditating }" @click="toggleMeditate">
+              {{ meditating ? '■ 出定（暂停）' : '◎ 入定（开始冥想）' }}
+            </button>
+            <button class="mj-btn ghost" @click="resetPower">归零重练</button>
+          </div>
+
+          <p class="med-tip">
+            冥想时念力持续增长，但越接近瓶颈增长越慢——真正的突破，靠的是法则感悟，不只是时间。
+          </p>
+        </div>
+      </section>
+
       <!-- 秘法 -->
       <h3 class="sec-sub">秘法传承 · ARTS</h3>
       <div class="arts">
@@ -113,10 +152,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
 import { REALMS, ARTS } from '../data/lore.js'
 import { fetchLore } from '../api/lore.js'
+import { useToast } from '../composables/useToast.js'
+
+const { show } = useToast()
 
 // 优先使用后台管理的数据；后端不可用时兜底本地 lore.js
 // 后台的「意识修炼」模块同时维护境界与其秘法，秘法随境界一起返回
@@ -156,6 +198,8 @@ onMounted(async () => {
   }
 })
 
+onBeforeUnmount(stopMeditate)
+
 const selectedId = ref('shape')
 const selected = computed(
   () => realms.value.find((r) => r.id === selectedId.value) || realms.value[0]
@@ -191,5 +235,82 @@ function fmt(v) {
 function fmtPower(v) {
   if (v >= 10000) return (v / 10000).toFixed(2) + ' 亿 念力单位'
   return v.toFixed(v < 10 ? 2 : 0) + ' 万 念力单位'
+}
+
+// ---------- 增强：实修冥想系统 ----------
+const STORE_KEY = 'ss_cultivate_power'
+const power = ref(loadPower())
+const meditating = ref(false)
+let meditateTimer = null
+
+function loadPower() {
+  const v = parseFloat(localStorage.getItem(STORE_KEY))
+  return isFinite(v) && v > 0 ? v : 1
+}
+function savePower() {
+  localStorage.setItem(STORE_KEY, String(power.value))
+}
+
+// 当前境界与下一境界（按 real 的 min 阈值）
+const medCurRealm = computed(() => {
+  let idx = 0
+  realms.value.forEach((r, i) => {
+    if (power.value >= r.min) idx = i
+  })
+  return realms.value[idx]
+})
+const medNextRealm = computed(() => {
+  let idx = 0
+  realms.value.forEach((r, i) => {
+    if (power.value >= r.min) idx = i
+  })
+  return realms.value[idx + 1] || null
+})
+const breakthroughProgress = computed(() => {
+  const cur = medCurRealm.value
+  const nxt = medNextRealm.value
+  if (!nxt) return 100
+  const ratio = (power.value - cur.min) / (nxt.min - cur.min)
+  return Math.min(100, Math.max(0, Math.round(ratio * 100)))
+})
+
+function toggleMeditate() {
+  if (meditating.value) stopMeditate()
+  else startMeditate()
+}
+function startMeditate() {
+  meditating.value = true
+  meditateTimer = setInterval(() => {
+    // 每次冥想：当前值递增，越接近瓶颈增长越慢
+    const cur = medCurRealm.value
+    const nxt = medNextRealm.value
+    if (!nxt) {
+      stopMeditate()
+      return
+    }
+    const span = nxt.min - cur.min
+    const step = Math.max(1, span * 0.02)
+    power.value = Math.min(nxt.min, power.value + step)
+    savePower()
+    if (power.value >= nxt.min) {
+      // 突破
+      showBreakthrough(nxt)
+    }
+  }, 600)
+}
+function stopMeditate() {
+  meditating.value = false
+  if (meditateTimer) clearInterval(meditateTimer)
+  meditateTimer = null
+  savePower()
+}
+function showBreakthrough(realm) {
+  show(`✦ 念力突破！踏入「${realm.name}」`, 'ok')
+}
+
+function resetPower() {
+  power.value = 1
+  savePower()
+  stopMeditate()
 }
 </script>

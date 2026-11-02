@@ -21,6 +21,17 @@
             {{ c }}
           </button>
         </div>
+        <div class="sort-group">
+          <button
+            v-for="s in sorts"
+            :key="s.key"
+            class="chip sort-chip"
+            :class="{ on: sort === s.key }"
+            @click="sort = s.key"
+          >
+            {{ s.label }}
+          </button>
+        </div>
         <div class="wallet">
           <span>账户余额</span>
           <b>{{ balance.toLocaleString() }}</b>
@@ -63,35 +74,57 @@
           </article>
         </div>
 
-        <aside class="card cart">
-          <div class="card-head">
-            <h3>采购清单</h3>
-            <span>{{ cart.length }} 件</span>
+        <aside class="mk-side">
+          <div class="card cart">
+            <div class="card-head">
+              <h3>采购清单</h3>
+              <span>{{ cart.length }} 件</span>
+            </div>
+
+            <ul v-if="cartItems.length" class="cart-list">
+              <li v-for="g in cartItems" :key="keyOf(g)">
+                <span class="cg">{{ g.glyph }}</span>
+                <div class="ci">
+                  <b>{{ g.name }}</b>
+                  <span>{{ g.cat }}</span>
+                </div>
+                <span class="cp">{{ g.price.toLocaleString() }}</span>
+                <button class="rm" @click="toggle(g)">×</button>
+              </li>
+            </ul>
+            <div v-else class="cart-empty">
+              <span>◇</span>
+              清单还是空的。星海很大，先挑一件称手的。
+            </div>
+
+            <div class="cart-total">
+              <span>合计</span>
+              <b>{{ total.toLocaleString() }} <i>宇宙币</i></b>
+            </div>
+            <button class="btn-gold" :disabled="!cart.length" @click="checkout">确认结算</button>
           </div>
 
-          <ul v-if="cartItems.length" class="cart-list">
-            <li v-for="g in cartItems" :key="keyOf(g)">
-              <span class="cg">{{ g.glyph }}</span>
-              <div class="ci">
-                <b>{{ g.name }}</b>
-                <span>{{ g.cat }}</span>
-              </div>
-              <span class="cp">{{ g.price.toLocaleString() }}</span>
-              <button class="rm" @click="toggle(g)">×</button>
-            </li>
-          </ul>
-          <div v-else class="cart-empty">
-            <span>◇</span>
-            清单还是空的。星海很大，先挑一件称手的。
+          <!-- 我的背包 -->
+          <div class="card bag-card">
+            <div class="card-head">
+              <h3>我的背包</h3>
+              <span>{{ bag.length }} 种</span>
+            </div>
+            <ul v-if="bag.length" class="bag-list">
+              <li v-for="b in bag" :key="b.code">
+                <span class="cg">{{ b.glyph }}</span>
+                <div class="ci">
+                  <b>{{ b.name }}</b>
+                  <span>{{ b.rarity }} · {{ b.cat }}</span>
+                </div>
+                <span class="bag-qty">×{{ b.quantity }}</span>
+              </li>
+            </ul>
+            <div v-else class="cart-empty">
+              <span>◇</span>
+              背包空空如也，去挑一件奇物吧。
+            </div>
           </div>
-
-          <div class="cart-total">
-            <span>合计</span>
-            <b>{{ total.toLocaleString() }} <i>宇宙币</i></b>
-          </div>
-          <button class="btn-gold" :disabled="!cart.length" @click="checkout">确认结算</button>
-          <router-link class="bag-link" to="/bag">查看我的背包 →</router-link>
-          <p class="cart-tip">演示交易：不产生真实扣款，余额仅存于当前页面。</p>
         </aside>
       </div>
     </div>
@@ -103,7 +136,6 @@ import { computed, onMounted, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
 import { GOODS } from '../data/lore.js'
 import { fetchLore } from '../api/lore.js'
-import { buyItems } from '../api/bag.js'
 import { useToast } from '../composables/useToast.js'
 
 const { show } = useToast()
@@ -140,10 +172,46 @@ onMounted(async () => {
 const cat = ref('全部')
 const balance = ref(500000)
 const cart = ref([])
+const sort = ref('default')
 
-const list = computed(() =>
-  cat.value === '全部' ? goods.value : goods.value.filter((g) => g.cat === cat.value)
-)
+// 排序选项
+const sorts = [
+  { key: 'default', label: '默认' },
+  { key: 'price-asc', label: '价格 ↑' },
+  { key: 'price-desc', label: '价格 ↓' },
+  { key: 'rarity', label: '稀有度' }
+]
+
+// 稀有度权重
+const RARITY = {
+  传说: '#ffd479',
+  史诗: '#a97bff',
+  稀有: '#66e0ff',
+  精良: '#7ee0b8'
+}
+const RARITY_WEIGHT = { 传说: 4, 史诗: 3, 稀有: 2, 精良: 1 }
+
+// 本地背包（localStorage 持久化）
+const BAG_KEY = 'ss_market_bag'
+const bag = ref(loadBag())
+function loadBag() {
+  try {
+    return JSON.parse(localStorage.getItem(BAG_KEY) || '[]')
+  } catch {
+    return []
+  }
+}
+function saveBag() {
+  localStorage.setItem(BAG_KEY, JSON.stringify(bag.value))
+}
+
+const list = computed(() => {
+  let arr = cat.value === '全部' ? goods.value : goods.value.filter((g) => g.cat === cat.value)
+  if (sort.value === 'price-asc') arr = [...arr].sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity))
+  else if (sort.value === 'price-desc') arr = [...arr].sort((a, b) => (b.price ?? -1) - (a.price ?? -1))
+  else if (sort.value === 'rarity') arr = [...arr].sort((a, b) => (RARITY_WEIGHT[b.rarity] || 0) - (RARITY_WEIGHT[a.rarity] || 0))
+  return arr
+})
 // 以货品编号作为唯一键（后台可能新增同名货品）
 const keyOf = (g) => g.id || g.name
 
@@ -151,13 +219,6 @@ const cartItems = computed(() => goods.value.filter((g) => cart.value.includes(k
 const total = computed(() =>
   cartItems.value.reduce((sum, g) => sum + (g.price === null ? 0 : g.price), 0)
 )
-
-const RARITY = {
-  传说: '#ffd479',
-  史诗: '#a97bff',
-  稀有: '#66e0ff',
-  精良: '#7ee0b8'
-}
 
 function rarityStyle(r) {
   const c = RARITY[r] || '#8b98bf'
@@ -186,42 +247,32 @@ function checkout() {
     show('余额不足，宇宙币可不会凭空长出来', 'err')
     return
   }
-  // 组装采购清单快照发给后端，写入当前登录用户背包（同款累加数量）
-  const items = cartItems.value.map((g) => ({
-    code: keyOf(g),
-    name: g.name,
-    glyph: g.glyph,
-    cat: g.cat,
-    rarity: g.rarity,
-    price: g.price === null || g.price === undefined ? null : g.price,
-    unit: g.unit,
-    seller: g.seller,
-    quantity: 1
-  }))
-  buyItems(items)
-    .then(() => {
-      balance.value -= total.value
-      show(`结算成功，共 ${total.value.toLocaleString()} 宇宙币，已存入背包`, 'ok')
-      cart.value = []
-    })
-    .catch((e) => {
-      show((e && e.message) || '结算失败，请确认已登录后再试', 'err')
-    })
+  // 扣款 + 写入背包 + 扣减库存
+  balance.value -= total.value
+  cartItems.value.forEach((g) => {
+    addToBag(g)
+    if (g.stock > 0) g.stock -= 1
+  })
+  const names = cartItems.value.map((g) => g.name).join('、')
+  show(`结算成功，已购入「${names}」，可在背包查看`, 'ok')
+  cart.value = []
 }
-</script>
 
-<style scoped>
-.bag-link {
-  display: block;
-  text-align: center;
-  margin: 10px 16px 0;
-  font-size: 12px;
-  letter-spacing: 1.5px;
-  color: var(--cyan);
-  text-decoration: none;
-  transition: 0.2s;
+function addToBag(g) {
+  const hit = bag.value.find((b) => b.code === keyOf(g))
+  if (hit) hit.quantity += 1
+  else {
+    bag.value.push({
+      code: keyOf(g),
+      name: g.name,
+      glyph: g.glyph,
+      cat: g.cat,
+      rarity: g.rarity,
+      price: g.price,
+      quantity: 1
+    })
+  }
+  saveBag()
 }
-.bag-link:hover {
-  color: var(--gold);
-}
-</style>
+
+</script>

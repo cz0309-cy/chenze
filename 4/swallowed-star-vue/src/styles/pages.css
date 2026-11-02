@@ -2014,3 +2014,419 @@
     letter-spacing: 5px;
   }
 }
+
+/* ---------- 星海探索增强：能量 / 资源舱 / 宇宙币 ---------- */
+.energy-bar {
+  height: 6px;
+  margin-top: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.energy-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  box-shadow: 0 0 8px rgba(102, 224, 255, 0.5);
+  transition: width 0.4s ease;
+}
+.coin-txt {
+  color: var(--gold);
+}
+.res-panel {
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+}
+.res-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 20px 0;
+}
+.res-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(140, 170, 255, 0.22);
+  background: rgba(102, 224, 255, 0.06);
+  font-size: 12px;
+  color: var(--text);
+}
+.res-item i {
+  font-style: normal;
+  color: var(--text);
+  letter-spacing: 1px;
+}
+.res-item b {
+  color: var(--gold);
+  font-size: 12px;
+}
+.res-empty {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  padding: 4px 0;
+}
+
+/* ---------- 文明图鉴增强：收藏 / 势力概览 ---------- */
+.cx-overview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+  animation: rise 0.6s 0.05s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ov-cell {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--panel-line);
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+}
+.ov-cell span {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+.ov-cell b {
+  font-size: 18px;
+  color: var(--cyan);
+}
+.ov-cell.hostile b {
+  color: var(--danger);
+}
+.fav-btn {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px;
+  transition: 0.2s;
+  margin-left: auto;
+}
+.fav-btn:hover {
+  color: var(--gold);
+  transform: scale(1.15);
+}
+.fav-btn.on {
+  color: var(--gold);
+  text-shadow: 0 0 10px rgba(255, 212, 121, 0.6);
+}
+.fav-btn.big {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  border: 1px solid rgba(255, 212, 121, 0.3);
+  border-radius: 8px;
+  padding: 5px 10px;
+  margin-left: 12px;
+}
+.fav-btn.big.on {
+  background: rgba(255, 212, 121, 0.12);
+}
+.cx-detail-title {
+  display: flex;
+  align-items: center;
+}
+
+/* ---------- 奇物交易增强：排序 / 背包 ---------- */
+.sort-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sort-chip {
+  font-size: 11px;
+  padding: 5px 10px;
+}
+.mk-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.bag-card {
+  padding-bottom: 14px;
+}
+.bag-list {
+  list-style: none;
+  padding: 6px 16px 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.bag-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(140, 170, 255, 0.1);
+}
+.bag-list li:last-child {
+  border-bottom: 0;
+}
+.bag-list .ci {
+  flex: 1;
+  min-width: 0;
+}
+.bag-list .ci b {
+  display: block;
+  font-size: 12.5px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bag-list .ci span {
+  display: block;
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.bag-qty {
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ---------- 人物档案增强：阵营筛选 / 对比 ---------- */
+.chr-toolbar {
+  margin-bottom: 14px;
+}
+.chr-tab.cmp {
+  border-color: rgba(102, 224, 255, 0.5);
+}
+.cmp-btn {
+  margin-left: auto;
+  align-self: center;
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(102, 224, 255, 0.35);
+  background: rgba(102, 224, 255, 0.08);
+  color: var(--cyan);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+.cmp-btn:hover {
+  border-color: rgba(102, 224, 255, 0.7);
+  transform: translateY(-1px);
+}
+.cmp-btn.on {
+  background: rgba(102, 224, 255, 0.16);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  box-shadow: 0 0 10px rgba(102, 224, 255, 0.3);
+}
+.cmp-panel {
+  margin-top: 16px;
+  padding-bottom: 18px;
+}
+.cmp-table {
+  padding: 12px 20px 0;
+}
+.cmp-row {
+  display: grid;
+  grid-template-columns: 120px repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(140, 170, 255, 0.1);
+  align-items: center;
+}
+.cmp-row:last-child {
+  border-bottom: 0;
+}
+.cmp-row.cmp-head {
+  border-bottom: 1px solid rgba(255, 212, 121, 0.3);
+  padding-bottom: 14px;
+}
+.cmp-label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.cmp-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cmp-col b {
+  font-size: 13px;
+  color: var(--text);
+  letter-spacing: 1px;
+}
+.cmp-col em {
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.cmp-val {
+  font-size: 13px;
+  color: var(--gold);
+  font-weight: 700;
+}
+.cmp-bar {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.cmp-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  transition: width 0.4s ease;
+}
+
+/* ---------- 意识修炼增强：实修冥想 ---------- */
+.med-card {
+  margin-top: 16px;
+  padding-bottom: 18px;
+}
+.med-body {
+  padding: 14px 20px 0;
+}
+.med-state {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.med-realm,
+.med-power {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 170, 255, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+}
+.med-realm span,
+.med-power span {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+.med-realm b {
+  display: block;
+  margin-top: 6px;
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: var(--gold);
+}
+.med-power b {
+  display: block;
+  margin-top: 6px;
+  font-size: 17px;
+  color: var(--cyan);
+}
+.med-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  align-items: center;
+}
+.med-actions .btn-gold {
+  flex: 1;
+}
+.med-actions .btn-gold.active {
+  filter: brightness(0.85);
+}
+.med-actions .mj-btn {
+  flex: 0 0 auto;
+}
+.med-tip {
+  margin-top: 12px;
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  line-height: 1.8;
+}
+
+/* ---------- 功法阁 ---------- */
+.gold-txt {
+  color: var(--gold);
+}
+.risk-txt {
+  color: var(--danger);
+}
+.art-card {
+  cursor: pointer;
+}
+.art-glyph {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(255, 212, 121, 0.5);
+}
+.art-glyph.big {
+  font-size: 28px;
+}
+.art-type {
+  font-size: 10.5px;
+  letter-spacing: 1px;
+  color: var(--cyan);
+  margin-left: 8px;
+  flex: 1;
+}
+.art-grade {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+.g-1 { color: #8b98bf; }
+.g-2 { color: #7ee0b8; }
+.g-3 { color: #66e0ff; }
+.g-4 { color: #a97bff; }
+.g-5 { color: #ffd479; }
+.mastered-mark {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #7ee0b8;
+}
+.insight-box {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(102, 224, 255, 0.25);
+  background: rgba(102, 224, 255, 0.05);
+}
+.insight-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.insight-head span {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+.insight-head b {
+  font-size: 14px;
+  color: var(--cyan);
+}
+.insight-box .progress-line {
+  margin: 0 0 14px;
+}
+.insight-box .btn-gold {
+  width: 100%;
+}
+.insight-tip {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  line-height: 1.7;
+}
+.mastered-box {
+  border-color: rgba(126, 224, 184, 0.35);
+  background: rgba(126, 224, 184, 0.06);
+}
