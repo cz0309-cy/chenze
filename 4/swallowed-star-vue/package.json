@@ -12,6 +12,7 @@
     "format": "prettier --write \"src/**/*.{js,vue,css}\""
   },
   "dependencies": {
+    "three": "^0.187.0",
     "vue": "^3.4.21",
     "vue-router": "^4.3.0"
   },
