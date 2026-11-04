@@ -89,9 +89,7 @@ const navs = [
   { key: 'codex', label: '文明图鉴', to: '/codex' },
   { key: 'market', label: '奇物交易', to: '/market' },
   { key: 'cultivate', label: '意识修炼', to: '/cultivate' },
-  { key: 'arthall', label: '功法阁', to: '/arthall' },
-  { key: 'character', label: '人物档案', to: '/character' },
-  { key: 'monster', label: '星兽狩猎', to: '/monster' }
+  { key: 'character', label: '人物档案', to: '/character' }
 ]
 
 const session = getSession()

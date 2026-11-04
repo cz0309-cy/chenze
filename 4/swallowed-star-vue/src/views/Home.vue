@@ -327,9 +327,7 @@ const modules = computed(() => {
     { to: '/codex', name: '文明图鉴', desc: '人类 / 异族 / 未知者档案', icon: '📖' },
     { to: '/market', name: '奇物交易', desc: '兵器 · 传承 · 材料 · 载具', icon: '💎' },
     { to: '/cultivate', name: '意识修炼', desc: '七境阶梯 · 念力推演', icon: '🧠' },
-    { to: '/arthall', name: '功法阁', desc: '法则秘法 · 参悟传承', icon: '📜' },
-    { to: '/character', name: '人物档案', desc: '罗峰与同行者的人物志', icon: '👤' },
-    { to: '/monster', name: '星兽狩猎', desc: '猎杀凶兽 · 觉醒星核之躯', icon: '⚔️' }
+    { to: '/character', name: '人物档案', desc: '罗峰与同行者的人物志', icon: '👤' }
   ]
   // 仅权限=0（管理员）可见「后台管理系统」入口；权限=1 默认用户不可见也无法进入
   if (isAdmin.value) {

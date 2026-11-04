@@ -38,7 +38,8 @@
 3. 后端构建：`mvn -DskipTests package`（在 springBootTest 目录；target 被清空需重建）
 4. 后端运行：`java -jar target\springBootTest-0.0.1-SNAPSHOT.jar --server.port=8081 --spring.profiles.active=dev`
 5. 前端：`cd swallowed-star-vue && npm install && npm run dev`（node_modules 被清空需重装）
-- 演示账号：`admin / 123456`（后端首次启动由 DataInitializer 自动创建）
+- 演示账号：`chenze / 123456`（star_user 表，明文存储，permission=0 可登前台+后台）；
+  ⚠️ 旧账号 `admin / 123456` 已不存在（star_user 无 admin 行，DataInitializer 仅在表为空时创建）
 
 ## 4. 常见坑（已写进脚本，这里留给 AI 复盘）
 - `schema.sql` 只建表不建库 → 必须先跑 `star_user.sql`，否则后端起不来。
@@ -46,6 +47,10 @@
 - MySQL 客户端不在 PATH → 脚本用绝对路径。
 - node_modules / target 每次重置被删 → 脚本每次重新 install / package。
 - 若重置把 `~/.m2` 也清了，首次 `mvn package` 需联网下载依赖。
+- ⚠️ 2026-11-04：路由曾引入未创建的 `Mahjong.vue`（星兽狩猎）/`ArtHall.vue`（功法阁），
+  Vite 报 `Failed to resolve import` 导致全站白屏。已暂时注释掉这两条路由和导航/首页入口
+  （router/index.js 中有 TODO），补做页面后恢复即可。
+  **教训：新增路由前必须先确认组件文件存在，否则整站打不开。**
 
 ## 5. 启停脚本说明
 - `start.bat`（GBK）：一键执行上面 1–5，后端/前端各开一个命令行窗口常驻。
@@ -103,7 +108,9 @@
 `regions`（星海探索）、`arts`（秘法独立模块）已从后台移除，前台 `/explore` 页面本身保留但不再由后台管理。
 
 **表**（`schema.sql` / `star_user.sql` 均已加，启动幂等）
-- `admin_user`：后台管理员，与前台 star_user 隔离；初始账号 `admin / 123456`（BCrypt，AdminDataInitializer 创建）
+- ⚠️ 2026-11-04 更正：`admin_user` 表已废弃。当前 `AdminAuthController` 改为查 `star_user` 中
+  `permission=0` 的用户作为管理员，密码「明文优先、兼容 BCrypt」；后台登录用 `chenze / 123456`
+- `admin_user`（历史遗留，代码已不再使用）：初始账号 `admin / 123456`（BCrypt，AdminDataInitializer 创建）
 - `civilization`（文明图鉴）/ `good_item`（奇物交易）/
   `cultivate_realm` + `secret_art`（意识修炼：境界+秘法）/ `character_profile`（人物档案）
 - 嵌套结构（资源/事件/特征/能力条/时间线/关系网等）以 `*_json` TEXT 列存 JSON 数组
