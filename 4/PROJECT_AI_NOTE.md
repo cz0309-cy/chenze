@@ -14,7 +14,11 @@
   - 启动类：`src/main/java/com/fenglin/springboottest/SpringBootTestApplication.java`
   - 配置：`src/main/resources/application-dev.properties`（端口 8081，数据源 root/123456，库 swallowed_star）
   - 启动建表：`src/main/resources/schema.sql`（**只建表，不建库**）
-  - 本地建库建表脚本：`star_user.sql`（根目录，幂等，必须先执行以保证库存在）
+  - 本地建库建表脚本：**`swallowed_star.sql`**（项目根目录；Navicat 导出，**只含 CREATE TABLE 不含建库**，
+    且带 `DROP TABLE IF EXISTS`，属破坏性全量导入，仅在首次重建时手动跑一次）
+  - ✅ 2026-11-06 更正：旧文档写的 `star_user.sql` **已不存在**（已改名为 `swallowed_star.sql`），
+    `start.bat` 第 2 步原先引用它导致建库静默失败 → 后端报 `Unknown database 'swallowed_star'`。
+    已改为 `CREATE DATABASE IF NOT EXISTS`（幂等、不破坏数据），表仍由启动时 `schema.sql` 自动创建。
   - 构建产物：`target/springBootTest-0.0.1-SNAPSHOT.jar`
 - `swallowed-star-vue/` —— 前端 (Vue3 + Vite5)
   - 代理：`vite.config.js` 把 `/api` 代理到 `http://localhost:8081`
@@ -34,7 +38,8 @@
 
 ## 3. 启动步骤（下次直接跑 start.bat，无需逐步手动）
 1. `net start MySQL80`（若已运行忽略）
-2. `"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -uroot -p123456 < springBootTest\star_user.sql`（建库+表，幂等）
+2. 建库：`mysql -uroot -p123456 -e "CREATE DATABASE IF NOT EXISTS swallowed_star DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"`
+   （表由后端启动时 `schema.sql` 自动建；需要完整种子数据时再手动导入根目录 `swallowed_star.sql`，注意它会先 DROP TABLE）
 3. 后端构建：`mvn -DskipTests package`（在 springBootTest 目录；target 被清空需重建）
 4. 后端运行：`java -jar target\springBootTest-0.0.1-SNAPSHOT.jar --server.port=8081 --spring.profiles.active=dev`
 5. 前端：`cd swallowed-star-vue && npm install && npm run dev`（node_modules 被清空需重装）
@@ -42,7 +47,9 @@
   ⚠️ 旧账号 `admin / 123456` 已不存在（star_user 无 admin 行，DataInitializer 仅在表为空时创建）
 
 ## 4. 常见坑（已写进脚本，这里留给 AI 复盘）
-- `schema.sql` 只建表不建库 → 必须先跑 `star_user.sql`，否则后端起不来。
+- `schema.sql` 只建表不建库 → **库不存在时后端直接 `Unknown database 'swallowed_star'` 启动失败**
+  （2026-11-06 实际踩到：重置后库被删，`start.bat` 又引用了已改名的 `star_user.sql`，建库步骤静默失败）。
+  排查口令：日志 `springBootTest/log/xx.log` 末尾搜 `Unknown database`。
 - Maven 不在 PATH → 用 IDEA 自带 Maven 绝对路径（脚本已处理）。
 - MySQL 客户端不在 PATH → 脚本用绝对路径。
 - node_modules / target 每次重置被删 → 脚本每次重新 install / package。
@@ -156,5 +163,36 @@
 - 前台 Codex/Market/Cultivate/Character 均为 onMounted 拉取 `/api/lore/*`，失败兜底本地 lore.js；
   Market 用 `keyOf = g => g.id || g.name` 作键（后台无 code 的货品不会导致价格 NaN）
 - 已端到端验证（Playwright）：按钮跳转、登录页无注册、四模块侧栏、四模块增/改/删与前台同步、控制台 0 错误
+
+## 10. 秘境寻宝小游戏（2026-11-06）
+
+路由 `/treasure`（`views/StarGame.vue`），替代原「星骸远航」3D 沙盒（旧引擎已归档到 `src/game/_legacy_starfare/`，勿直接引用）。
+
+**玩法**：6 关顺序闯，1–4 人组队。每关 2 次机会 —— 第 1 次失败原地重试，第 2 次失败退回上一关（第 1 关则回到起点），退回后该关机会重新给满。
+
+**文件分工**
+| 文件 | 职责 |
+| --- | --- |
+| `game/treasure/levels.js` | 只放规则参数（秒数/节拍/需要记住几件）与关卡元信息，**不含固定题目** |
+| `game/treasure/questionBank.js` | 全部随机题库 + `drawL1/3/4/5/6` 抽题函数 |
+| `game/treasure/engine.js` | 状态机（phase: intro/level/verdict/treasure），重试与退回逻辑 |
+| `components/treasure/L1..L6` | 6 个关卡交互组件，`emit('pass'/'fail', reason)` |
+| `styles/treasure.css` | `.tg-*` 全部样式，`main.js` 中引入 |
+
+**随机题库（每次挑战内容都不同）**
+- L1 眼力：50 件物品池抽 5 正选 + 4 干扰（`L1_POOL`），组合数极大
+- L3 推理：`L3_BANK` 10 道题，选项每次乱序
+- L4 手脑：`L4_COMBOS` 6 组左右手动作，玩法仍是「左手先、右手后」，故 `levels.js` 里第 4 关规则写成通用描述
+- L5 短句：`L5_BANK` 10 句，`segments` 直接 `join('')` 得原句、去标点得词块，保证「展示的句子」与「正确拼法」永不脱节
+- L6 谜题：`L6_BANK` 10 道谜语，各带 2 条提示，选项乱序
+- `pickFrom()` 记住每类题上次抽到的下标，撞到就顺移一格 → **连续两次必定不同**（重试/退回再进也算）
+- 抽题发生在组件 `setup` 顶层，而 `StarGame.vue` 用 `:key="levelKey"`（含 `runId`）重建组件，所以重试自动换题
+- L2 反应关本来就是随机口令序列（绿 55% / 红 45%），无固定题面
+
+**改动注意**
+- `questionBank.js` 导出了 `L1_POOL / L3_BANK / L4_COMBOS / L5_BANK / L6_BANK`，方便加题和写自动化测试；加题只需往数组里追加
+- L5 新增句子时，`decoys` 不能与 `tokens` 重复，且词块之间不能互为前缀（否则切分/拼句会有歧义）
+- 验证脚本在会话工作区 `.tmp/e2e-random.mjs`（CDP 直连本机 Chrome，无需装 Playwright），会读题库反查答案并断言「重试换题」「换局换题」
+
 
 

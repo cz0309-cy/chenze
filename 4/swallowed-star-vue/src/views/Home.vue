@@ -328,7 +328,7 @@ const modules = computed(() => {
     { to: '/market', name: '奇物交易', desc: '兵器 · 传承 · 材料 · 载具', icon: '💎' },
     { to: '/cultivate', name: '意识修炼', desc: '七境阶梯 · 念力推演', icon: '🧠' },
     { to: '/character', name: '人物档案', desc: '罗峰与同行者的人物志', icon: '👤' },
-    { to: '/stargame', name: '星骸远航', desc: 'Three.js 3D 星际沙盒 · 探索/空战/建造/贸易', icon: '🚀' }
+    { to: '/treasure', name: '秘境寻宝', desc: '6 关闯关 · 1–4 人组队 · 失败退回上一关', icon: '🗝️' }
   ]
   // 仅权限=0（管理员）可见「后台管理系统」入口；权限=1 默认用户不可见也无法进入
   if (isAdmin.value) {

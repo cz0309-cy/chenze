@@ -1,0 +1,1197 @@
+/* ============================================================
+   秘境寻宝 · 闯关游戏样式
+   沿用 style.css 的 CSS 变量（暗底 + 暗金 / 青 / 紫）
+   ============================================================ */
+
+.tg-page {
+  animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.tg-intro-head {
+  margin-bottom: 18px;
+}
+
+/* ---------- 通用面板 ---------- */
+.tg-board {
+  position: relative;
+  padding: 22px 24px 24px;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-line);
+  background: linear-gradient(180deg, rgba(16, 24, 52, 0.82), rgba(8, 12, 28, 0.88));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.5);
+}
+.tg-board::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(140deg, rgba(255, 212, 121, 0.4), rgba(102, 224, 255, 0.14) 45%, rgba(169, 123, 255, 0.3));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ---------- 按钮 ---------- */
+.tg-btn {
+  height: 42px;
+  padding: 0 22px;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 170, 255, 0.24);
+  background: rgba(20, 28, 56, 0.8);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.25s, border-color 0.25s, opacity 0.2s;
+}
+.tg-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: rgba(255, 212, 121, 0.5);
+}
+.tg-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+.tg-gold {
+  border: 0;
+  color: #1a1305;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  box-shadow: 0 12px 26px rgba(245, 166, 35, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.tg-gold:hover:not(:disabled) {
+  box-shadow: 0 16px 34px rgba(245, 166, 35, 0.42);
+}
+.tg-btn-lg {
+  height: 50px;
+  padding: 0 34px;
+  font-size: 15.5px;
+  letter-spacing: 3px;
+}
+.tg-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.tg-actions-center {
+  justify-content: center;
+}
+
+/* ---------- 报名页 ---------- */
+.tg-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 880px;
+  margin: 0 auto;
+}
+.tg-pick {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.tg-pick-label {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 2px;
+}
+.tg-pick-btns {
+  display: flex;
+  gap: 8px;
+}
+.tg-pick-btn {
+  min-width: 64px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(140, 170, 255, 0.22);
+  background: rgba(18, 26, 50, 0.7);
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.tg-pick-btn.on {
+  color: #1a1305;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  font-weight: 700;
+}
+.tg-names {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+.tg-name-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(140, 170, 255, 0.16);
+  background: rgba(12, 18, 38, 0.72);
+}
+.tg-name-field span {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tg-name-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 13.5px;
+  outline: none;
+}
+.tg-name-field input::placeholder {
+  color: rgba(139, 152, 191, 0.55);
+}
+.tg-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 170, 255, 0.14);
+  background: rgba(8, 12, 26, 0.6);
+  overflow: hidden;
+}
+.tg-rule-row {
+  display: grid;
+  grid-template-columns: 26px 26px 84px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  font-size: 12.5px;
+  border-bottom: 1px solid rgba(140, 170, 255, 0.07);
+}
+.tg-rule-row:last-child {
+  border-bottom: 0;
+}
+.tg-rule-id {
+  font-family: ui-monospace, Consolas, monospace;
+  color: var(--cyan);
+  opacity: 0.8;
+}
+.tg-rule-ico {
+  font-size: 15px;
+}
+.tg-rule-name {
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+.tg-rule-text {
+  color: var(--muted);
+  line-height: 1.7;
+}
+.tg-start {
+  align-self: center;
+}
+.tg-best {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+
+/* ---------- 顶部进度 ---------- */
+.tg-bar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.tg-progress {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tg-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 170, 255, 0.14);
+  background: rgba(12, 18, 38, 0.6);
+  font-size: 11.5px;
+  color: var(--muted);
+  transition: 0.25s;
+}
+.tg-step-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 10.5px;
+  font-family: ui-monospace, Consolas, monospace;
+  background: rgba(140, 170, 255, 0.12);
+  color: var(--muted);
+}
+.tg-step-name {
+  letter-spacing: 0.5px;
+}
+.tg-step.now {
+  border-color: rgba(255, 212, 121, 0.6);
+  background: rgba(255, 212, 121, 0.1);
+  color: var(--gold);
+  box-shadow: 0 0 22px rgba(255, 212, 121, 0.18);
+}
+.tg-step.now .tg-step-dot {
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  color: #1a1305;
+  font-weight: 700;
+}
+.tg-step.done {
+  border-color: rgba(74, 222, 128, 0.35);
+  color: rgba(74, 222, 128, 0.9);
+}
+.tg-step.done .tg-step-dot {
+  background: rgba(74, 222, 128, 0.18);
+  color: var(--ok);
+}
+.tg-step.lock {
+  opacity: 0.5;
+}
+
+.tg-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.tg-timer {
+  font-family: ui-monospace, Consolas, monospace;
+  color: var(--cyan);
+  letter-spacing: 1px;
+}
+.tg-responder {
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px dashed rgba(140, 170, 255, 0.3);
+  transition: 0.2s;
+  user-select: none;
+}
+.tg-responder:hover {
+  border-color: rgba(255, 212, 121, 0.5);
+  color: var(--gold);
+}
+.tg-responder b {
+  color: var(--gold);
+}
+.tg-quit {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 107, 129, 0.3);
+  background: transparent;
+  color: rgba(255, 107, 129, 0.85);
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.tg-quit:hover {
+  background: rgba(255, 107, 129, 0.12);
+}
+
+/* ---------- 关卡头部 ---------- */
+.tg-level-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(140, 170, 255, 0.12);
+}
+.tg-level-ico {
+  font-size: 26px;
+  filter: drop-shadow(0 0 12px rgba(255, 212, 121, 0.35));
+}
+.tg-level-title {
+  flex: 1;
+  min-width: 0;
+}
+.tg-level-tag {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--cyan);
+  opacity: 0.8;
+}
+.tg-level-title h2 {
+  font-size: 19px;
+  letter-spacing: 4px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #fff, var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-top: 2px;
+}
+.tg-attempt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.tg-attempt i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(74, 222, 128, 0.75);
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.45);
+}
+.tg-attempt i.used {
+  background: rgba(140, 170, 255, 0.25);
+  box-shadow: none;
+}
+.tg-attempt.warn {
+  color: var(--danger);
+}
+.tg-attempt.warn i:not(.used) {
+  background: var(--danger);
+  box-shadow: 0 0 10px rgba(255, 107, 129, 0.5);
+}
+.tg-level-rule {
+  margin: 10px 0 18px;
+  font-size: 12.5px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  line-height: 1.8;
+}
+
+/* ---------- 关卡通用 ---------- */
+.tg-body {
+  display: block;
+  min-height: 250px;
+}
+.tg-lead {
+  font-size: 13.5px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  line-height: 1.9;
+  margin-bottom: 14px;
+}
+.tg-lead b {
+  color: var(--gold);
+}
+.tg-lead-center {
+  text-align: center;
+  max-width: 560px;
+}
+.tg-count {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 17px;
+  color: var(--gold);
+  font-weight: 700;
+}
+.c-green {
+  color: var(--ok);
+}
+.c-red {
+  color: var(--danger);
+}
+.tg-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 0 4px;
+}
+.tg-kbd {
+  font-size: 11.5px;
+  color: rgba(139, 152, 191, 0.75);
+  letter-spacing: 1px;
+}
+.tg-kbd kbd {
+  padding: 2px 6px;
+  border-radius: 5px;
+  border: 1px solid rgba(140, 170, 255, 0.3);
+  background: rgba(140, 170, 255, 0.1);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 11px;
+  color: var(--text);
+}
+
+/* ---------- 第 1 关：物品 ---------- */
+.tg-items {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.tg-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 212, 121, 0.28);
+  background: radial-gradient(circle at 50% 0%, rgba(255, 212, 121, 0.12), rgba(12, 18, 38, 0.7));
+  animation: tgPop 0.4s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.tg-item:nth-child(2) {
+  animation-delay: 0.06s;
+}
+.tg-item:nth-child(3) {
+  animation-delay: 0.12s;
+}
+.tg-item:nth-child(4) {
+  animation-delay: 0.18s;
+}
+.tg-item:nth-child(5) {
+  animation-delay: 0.24s;
+}
+.tg-item-ico {
+  font-size: 30px;
+}
+.tg-item-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--gold);
+}
+@keyframes tgPop {
+  from {
+    opacity: 0;
+    transform: scale(0.82) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.tg-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(140, 170, 255, 0.12);
+  overflow: hidden;
+}
+.tg-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-2));
+  transition: width 1s linear;
+}
+
+/* ---------- 遮蔽态 ---------- */
+.tg-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 240px;
+  border-radius: 16px;
+  border: 1px dashed rgba(140, 170, 255, 0.28);
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(140, 170, 255, 0.05) 0 10px,
+    rgba(140, 170, 255, 0.02) 10px 20px
+  );
+  text-align: center;
+}
+.tg-cover-ico {
+  font-size: 40px;
+  animation: tgFloat 2.4s ease-in-out infinite;
+}
+.tg-cover p {
+  font-size: 15px;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+.tg-cover-sub {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+@keyframes tgFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+/* ---------- 选项 chips ---------- */
+.tg-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+.tg-chips-col {
+  grid-template-columns: 1fr;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.tg-chips-4 {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 520px;
+  margin: 0 auto;
+}
+.tg-chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 170, 255, 0.22);
+  background: rgba(16, 24, 50, 0.8);
+  color: var(--text);
+  font-size: 14.5px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: 0.18s;
+}
+.tg-chip:hover:not(:disabled) {
+  border-color: rgba(255, 212, 121, 0.55);
+  transform: translateY(-2px);
+}
+.tg-chip.on {
+  border-color: rgba(255, 212, 121, 0.85);
+  background: linear-gradient(135deg, rgba(255, 212, 121, 0.22), rgba(245, 166, 35, 0.12));
+  color: var(--gold);
+  box-shadow: 0 0 20px rgba(255, 212, 121, 0.2);
+}
+.tg-chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.tg-chip.used {
+  opacity: 0.25;
+  text-decoration: line-through;
+}
+.tg-chip-wide {
+  justify-content: flex-start;
+  padding-left: 16px;
+}
+.tg-chip-ico {
+  font-size: 18px;
+}
+.tg-chip-idx {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-family: ui-monospace, Consolas, monospace;
+  background: var(--gold);
+  color: #1a1305;
+  font-weight: 700;
+}
+.tg-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(140, 170, 255, 0.4);
+}
+.tg-chip.on .tg-chip-dot {
+  background: var(--gold);
+  box-shadow: 0 0 10px var(--gold);
+}
+
+/* ---------- 第 2 关：红绿灯 ---------- */
+.tg-hud {
+  display: flex;
+  gap: 26px;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.tg-hud-block {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.tg-hud-label {
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.tg-dots {
+  display: flex;
+  gap: 5px;
+}
+.tg-dots i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(140, 170, 255, 0.3);
+  transition: 0.2s;
+}
+.tg-dots i.on {
+  background: var(--ok);
+  border-color: transparent;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
+}
+.tg-dots i.bad.on {
+  background: var(--danger);
+  box-shadow: 0 0 12px rgba(255, 107, 129, 0.6);
+}
+.tg-rd-light {
+  width: 156px;
+  height: 156px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  border: 2px solid rgba(140, 170, 255, 0.2);
+  background: rgba(12, 18, 38, 0.9);
+  color: var(--muted);
+  transition: 0.14s;
+}
+.tg-rd-light.green {
+  border-color: rgba(74, 222, 128, 0.9);
+  background: radial-gradient(circle, rgba(74, 222, 128, 0.35), rgba(12, 30, 20, 0.9));
+  color: #b7f7cf;
+  box-shadow: 0 0 60px rgba(74, 222, 128, 0.45), inset 0 0 40px rgba(74, 222, 128, 0.25);
+  animation: tgPop 0.18s both;
+}
+.tg-rd-light.red {
+  border-color: rgba(255, 107, 129, 0.9);
+  background: radial-gradient(circle, rgba(255, 107, 129, 0.34), rgba(38, 12, 18, 0.9));
+  color: #ffc3cc;
+  box-shadow: 0 0 60px rgba(255, 107, 129, 0.45), inset 0 0 40px rgba(255, 107, 129, 0.25);
+  animation: tgPop 0.18s both;
+}
+.tg-rd-light.ok {
+  box-shadow: 0 0 70px rgba(74, 222, 128, 0.75), inset 0 0 40px rgba(74, 222, 128, 0.35);
+}
+.tg-rd-light.bad {
+  box-shadow: 0 0 70px rgba(255, 107, 129, 0.75), inset 0 0 40px rgba(255, 107, 129, 0.35);
+}
+.tg-rd-light.idle {
+  color: rgba(234, 240, 255, 0.72);
+  animation: tgBreath 2.6s ease-in-out infinite;
+}
+@keyframes tgBreath {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(140, 170, 255, 0);
+  }
+  50% {
+    box-shadow: 0 0 34px rgba(140, 170, 255, 0.22);
+  }
+}
+.tg-clap {
+  width: 200px;
+  height: 62px;
+  border-radius: 16px;
+  border: 1px solid rgba(140, 170, 255, 0.3);
+  background: rgba(20, 28, 56, 0.9);
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  cursor: pointer;
+  transition: 0.12s;
+}
+.tg-clap.ready {
+  border-color: rgba(74, 222, 128, 0.8);
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.9), rgba(34, 160, 90, 0.9));
+  color: #05210f;
+  box-shadow: 0 0 34px rgba(74, 222, 128, 0.45);
+  transform: scale(1.04);
+}
+.tg-clap:active {
+  transform: scale(0.97);
+}
+
+/* ---------- 第 4 关：节奏 ---------- */
+.tg-rhythm-demo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.tg-hand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 170, 255, 0.25);
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+.tg-hand small {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.tg-hand.left {
+  border-color: rgba(102, 224, 255, 0.45);
+  color: var(--cyan);
+}
+.tg-hand.right {
+  border-color: rgba(169, 123, 255, 0.45);
+  color: var(--violet);
+}
+.tg-arrow {
+  color: var(--gold);
+  font-size: 18px;
+}
+.tg-beats {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.tg-beats i {
+  width: 26px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(140, 170, 255, 0.16);
+  transition: 0.15s;
+}
+.tg-beats i.on {
+  background: var(--ok);
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+}
+.tg-beats i.now {
+  background: var(--gold);
+  box-shadow: 0 0 12px rgba(255, 212, 121, 0.6);
+}
+.tg-rhythm {
+  gap: 10px;
+  position: relative;
+}
+.tg-beat-ring {
+  position: relative;
+  width: 148px;
+  height: 148px;
+  display: grid;
+  place-items: center;
+}
+.tg-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 212, 121, 0.65);
+  animation: tgPulse 0.9s linear forwards;
+  pointer-events: none;
+}
+@keyframes tgPulse {
+  from {
+    transform: scale(0.55);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+.tg-lead-count {
+  font-size: 54px;
+  font-weight: 800;
+  font-family: ui-monospace, Consolas, monospace;
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(255, 212, 121, 0.5);
+  animation: tgPop 0.3s both;
+}
+.tg-beat-num {
+  font-size: 12.5px;
+  color: var(--muted);
+  letter-spacing: 2px;
+}
+.tg-beat-num b {
+  color: var(--gold);
+  font-size: 15px;
+}
+.tg-hands {
+  display: flex;
+  gap: 14px;
+  margin-top: 4px;
+}
+.tg-hand-btn {
+  width: 132px;
+  height: 96px;
+  border-radius: 16px;
+  border: 1px solid rgba(140, 170, 255, 0.25);
+  background: rgba(16, 24, 50, 0.85);
+  color: var(--text);
+  font-size: 15px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: 0.1s;
+}
+.tg-hand-btn small {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.tg-hand-btn.left {
+  border-color: rgba(102, 224, 255, 0.35);
+}
+.tg-hand-btn.right {
+  border-color: rgba(169, 123, 255, 0.35);
+}
+.tg-hand-btn.hit {
+  transform: scale(0.94);
+  border-color: rgba(255, 212, 121, 0.9);
+  background: linear-gradient(135deg, rgba(255, 212, 121, 0.28), rgba(245, 166, 35, 0.16));
+  box-shadow: 0 0 26px rgba(255, 212, 121, 0.35);
+}
+.tg-hand-btn:active {
+  transform: scale(0.93);
+}
+
+/* ---------- 卷轴 / 谜题 ---------- */
+.tg-scroll {
+  position: relative;
+  padding: 20px 22px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 212, 121, 0.3);
+  background: linear-gradient(180deg, rgba(46, 36, 18, 0.55), rgba(18, 15, 10, 0.75));
+  margin-bottom: 16px;
+}
+.tg-scroll-tall {
+  padding: 26px 24px;
+}
+.tg-scroll::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 6px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 212, 121, 0.5), transparent);
+}
+.tg-scroll-tag {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: rgba(255, 212, 121, 0.65);
+  margin-bottom: 8px;
+}
+.tg-scroll-text {
+  font-size: 16.5px;
+  line-height: 2;
+  letter-spacing: 2px;
+  color: #ffe6b8;
+}
+.tg-sentence {
+  font-size: 21px;
+  letter-spacing: 4px;
+  text-align: center;
+  padding: 10px 0;
+}
+.tg-riddle {
+  font-size: 17.5px;
+  line-height: 2.1;
+}
+.tg-hint {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 212, 121, 0.25);
+  font-size: 12.5px;
+  color: rgba(255, 212, 121, 0.85);
+  letter-spacing: 1px;
+}
+
+/* ---------- 第 5 关：拼句 ---------- */
+.tg-answer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 66px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 212, 121, 0.3);
+  background: rgba(10, 14, 30, 0.75);
+}
+.tg-answer.empty {
+  justify-content: center;
+  border-style: dashed;
+  border-color: rgba(140, 170, 255, 0.25);
+}
+.tg-answer-ph {
+  font-size: 12.5px;
+  color: rgba(139, 152, 191, 0.6);
+  letter-spacing: 1px;
+}
+.tg-token {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 212, 121, 0.55);
+  background: rgba(255, 212, 121, 0.14);
+  color: var(--gold);
+  font-size: 15px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.tg-token:hover {
+  background: rgba(255, 107, 129, 0.16);
+  border-color: rgba(255, 107, 129, 0.5);
+  color: var(--danger);
+}
+
+/* ---------- 判罚弹层 ---------- */
+.tg-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(2, 4, 10, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: tgFade 0.25s both;
+}
+@keyframes tgFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.tg-modal {
+  width: min(420px, 92vw);
+  padding: 26px 26px 24px;
+  border-radius: 20px;
+  text-align: center;
+  border: 1px solid var(--panel-line);
+  background: linear-gradient(180deg, rgba(20, 28, 56, 0.96), rgba(8, 12, 26, 0.98));
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+  animation: tgRise 0.3s cubic-bezier(0.2, 1.1, 0.4, 1) both;
+}
+@keyframes tgRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.tg-modal.pass {
+  border-color: rgba(255, 212, 121, 0.55);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), 0 0 50px rgba(255, 212, 121, 0.16);
+}
+.tg-modal.fail {
+  border-color: rgba(255, 107, 129, 0.45);
+}
+.tg-modal-ico {
+  font-size: 40px;
+  margin-bottom: 6px;
+}
+.tg-modal h3 {
+  font-size: 19px;
+  letter-spacing: 4px;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.tg-modal p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.9;
+  letter-spacing: 1px;
+}
+.tg-modal .tg-reason {
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.tg-modal .tg-sub {
+  margin-bottom: 18px;
+}
+.tg-modal .tg-sub b {
+  color: var(--danger);
+}
+.tg-modal .tg-btn {
+  width: 100%;
+}
+
+/* ---------- 宝藏 ---------- */
+.tg-treasure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px 20px 20px;
+  text-align: center;
+}
+.tg-treasure h1 {
+  font-size: 34px;
+  letter-spacing: 8px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #fff, var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(255, 212, 121, 0.25);
+}
+.tg-treasure-sub {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 2px;
+}
+.tg-chest {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  display: grid;
+  place-items: center;
+}
+.tg-chest-ico {
+  position: relative;
+  font-size: 74px;
+  z-index: 2;
+  animation: tgChest 2.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 24px rgba(255, 212, 121, 0.55));
+}
+@keyframes tgChest {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+.tg-chest-glow {
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 212, 121, 0.45), transparent 68%);
+  animation: tgBreath 2.6s ease-in-out infinite;
+}
+.tg-chest-rays {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 212, 121, 0.22),
+    transparent 12%,
+    rgba(255, 212, 121, 0.18) 26%,
+    transparent 40%,
+    rgba(255, 212, 121, 0.22) 55%,
+    transparent 70%,
+    rgba(255, 212, 121, 0.18) 85%,
+    transparent 100%
+  );
+  animation: tgSpin 14s linear infinite;
+  -webkit-mask: radial-gradient(circle, transparent 34%, #000 60%);
+  mask: radial-gradient(circle, transparent 34%, #000 60%);
+}
+@keyframes tgSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.tg-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(90px, 1fr));
+  gap: 10px;
+  width: min(560px, 100%);
+  margin-top: 8px;
+}
+.tg-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 14px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 170, 255, 0.16);
+  background: rgba(12, 18, 38, 0.7);
+}
+.tg-stat-num {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.tg-stat-label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 2px;
+}
+.tg-team {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.tg-team-chip {
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 212, 121, 0.32);
+  background: rgba(255, 212, 121, 0.08);
+  color: var(--gold);
+  font-size: 12.5px;
+  letter-spacing: 1px;
+}
+
+/* ---------- 窄屏 ---------- */
+@media (max-width: 720px) {
+  .tg-board {
+    padding: 16px 14px 18px;
+  }
+  .tg-items {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .tg-item {
+    padding: 12px 6px;
+  }
+  .tg-item-ico {
+    font-size: 24px;
+  }
+  .tg-item-name {
+    font-size: 12.5px;
+  }
+  .tg-rd-light {
+    width: 120px;
+    height: 120px;
+    font-size: 17px;
+  }
+  .tg-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tg-rule-row {
+    grid-template-columns: 22px 22px 70px 1fr;
+    font-size: 11.5px;
+  }
+  .tg-level-title h2 {
+    font-size: 16px;
+    letter-spacing: 2px;
+  }
+  .tg-hand-btn {
+    width: 46%;
+    height: 84px;
+  }
+}

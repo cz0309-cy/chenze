@@ -34,7 +34,9 @@ const routes = [
   { path: '/market', name: 'market', component: Market, meta: { auth: true } },
   { path: '/cultivate', name: 'cultivate', component: Cultivate, meta: { auth: true } },
   { path: '/character', name: 'character', component: Character, meta: { auth: true } },
-  { path: '/stargame', name: 'stargame', component: StarGame, meta: { auth: true } },
+  { path: '/treasure', name: 'treasure', component: StarGame, meta: { auth: true } },
+  // 旧地址兼容：原「星骸远航」已改为「秘境寻宝」
+  { path: '/stargame', redirect: '/treasure' },
   // { path: '/monster', name: 'monster', component: Mahjong, meta: { auth: true } },
   // { path: '/arthall', name: 'arthall', component: ArtHall, meta: { auth: true } },
   // 后台管理系统（仅登录，无注册功能）

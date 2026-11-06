@@ -35,11 +35,11 @@ net start MySQL80 >nul 2>&1
 echo        如已运行会提示, 可忽略
 
 echo [2/5] 初始化数据库 (建库/建表, 可重复执行) ...
-"%MYSQL%" -uroot -p123456 < "%BACKEND%\star_user.sql"
+"%MYSQL%" -uroot -p123456 -e "CREATE DATABASE IF NOT EXISTS swallowed_star DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
 IF ERRORLEVEL 1 (
-  echo [警告] 数据库初始化失败, 请确认 MySQL 已启动且密码为 123456
+  echo [警告] 建库失败, 请确认 MySQL 已启动且密码为 123456
 ) ELSE (
-  echo        数据库就绪
+  echo        数据库就绪 ^(表由后端启动时 schema.sql 自动创建^)
 )
 
 echo [3/5] 用 Maven 重新打包后端 (target 已清空, 必须重建) ...
@@ -69,7 +69,7 @@ echo ===================================================
 echo  启动完成!
 echo  前端: http://localhost:5173  (/api 自动代理到 8081)
 echo  后端: http://127.0.0.1:8081/api
-echo  演示账号: admin / 123456  (首次启动自动创建)
+echo  演示账号: chenze / 123456  ^(后台管理同账号^)
 echo  停止项目请运行 pause.bat
 echo ===================================================
 ENDLOCAL
