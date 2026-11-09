@@ -9,6 +9,8 @@ REM ============================================================
 SETLOCAL
 REM 防御: 清除可能被外部注入的 SERVER__PORT 环境变量, 避免后端被拐到非 8081 端口 (前端代理固定打 8081)
 set "SERVER__PORT="
+REM 局域网 IP: 其他设备通过该 IP 访问前端 5173 / 后端 8081 (本机换网络时只需改这一行)
+SET "LAN_IP=192.168.68.17"
 SET "ROOT=%~dp0"
 SET "BACKEND=%ROOT%springBootTest"
 SET "FRONTEND=%ROOT%swallowed-star-vue"
@@ -51,13 +53,13 @@ IF ERRORLEVEL 1 (
   goto :eof
 )
 
-echo [4/5] 启动后端  http://127.0.0.1:8081 ...
+echo [4/5] 启动后端  http://%LAN_IP%:8081 ...
 start "swallowed-star-backend" cmd /k "cd /d "%BACKEND%" && java -jar target\springBootTest-0.0.1-SNAPSHOT.jar --server.port=8081 --spring.profiles.active=dev"
 
 echo        等待后端启动 10 秒 ...
 timeout /t 10 /nobreak >nul
 
-echo [5/5] 安装前端依赖并启动  http://localhost:5173 ...
+echo [5/5] 安装前端依赖并启动  http://%LAN_IP%:5173 ...
 cd /d "%FRONTEND%"
 IF NOT EXIST node_modules (
   call npm install
@@ -67,8 +69,9 @@ start "swallowed-star-frontend" cmd /k "cd /d "%FRONTEND%" && npm run dev"
 echo.
 echo ===================================================
 echo  启动完成!
-echo  前端: http://localhost:5173  (/api 自动代理到 8081)
-echo  后端: http://127.0.0.1:8081/api
+echo  本机:   http://localhost:5173    http://127.0.0.1:8081/api
+echo  局域网: http://%LAN_IP%:5173    http://%LAN_IP%:8081/api   ^(其他设备用这个^)
+echo  提示:   其他设备打不开时, 请确认 Windows 防火墙已放行 5173 / 8081 端口
 echo  演示账号: chenze / 123456  ^(后台管理同账号^)
 echo  停止项目请运行 pause.bat
 echo ===================================================

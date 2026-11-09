@@ -2297,19 +2297,21 @@
 }
 .med-state {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 14px;
   margin-bottom: 16px;
 }
 .med-realm,
-.med-power {
+.med-power,
+.med-wallet {
   padding: 14px 16px;
   border-radius: 12px;
   border: 1px solid rgba(140, 170, 255, 0.18);
   background: rgba(255, 255, 255, 0.03);
 }
 .med-realm span,
-.med-power span {
+.med-power span,
+.med-wallet span {
   display: block;
   font-size: 11px;
   letter-spacing: 1.5px;
@@ -2327,6 +2329,17 @@
   margin-top: 6px;
   font-size: 17px;
   color: var(--cyan);
+}
+.med-wallet b {
+  display: block;
+  margin-top: 6px;
+  font-size: 17px;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.med-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 .med-actions {
   display: flex;

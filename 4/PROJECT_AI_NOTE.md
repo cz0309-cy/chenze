@@ -1,4 +1,4 @@
-# 吞噬星空 项目 · AI 启动索引 (PROJECT_AI_NOTE.md)
+﻿# 吞噬星空 项目 · AI 启动索引 (PROJECT_AI_NOTE.md)
 
 > 本文件供 AI 助手快速理解项目，避免本机每次重置后重新探索。
 > 重置约定：node_modules、target 会被清空；MySQL 服务保留，但库可能需重建。
@@ -21,7 +21,7 @@
     已改为 `CREATE DATABASE IF NOT EXISTS`（幂等、不破坏数据），表仍由启动时 `schema.sql` 自动创建。
   - 构建产物：`target/springBootTest-0.0.1-SNAPSHOT.jar`
 - `swallowed-star-vue/` —— 前端 (Vue3 + Vite5)
-  - 代理：`vite.config.js` 把 `/api` 代理到 `http://localhost:8081`
+  - 代理：`vite.config.js` 把 `/api` 代理到 `http://192.168.68.17:8081`（局域网 IP，见第 11 节）
   - 脚本：`npm run dev`(5173) / build / preview / lint / format
   - 依赖锁：`package-lock.json` 存在，可用 `npm ci`
 
@@ -65,7 +65,8 @@
 - 路径全部基于 `%~dp0`（脚本所在目录）的相对引用，项目文件夹可整体移动。
 
 ## 6. 接口速查
-- 基址：`http://127.0.0.1:8081/api`
+- 本机基址：`http://127.0.0.1:8081/api`
+- 局域网基址：`http://192.168.68.17:8081/api`
 - GET `/api/auth/me`（带 `Authorization: Bearer <token>`）
 - POST `/api/auth/login` `{username,password}` → token
 - POST `/api/auth/register` `{username,password}`
@@ -193,6 +194,52 @@
 - `questionBank.js` 导出了 `L1_POOL / L3_BANK / L4_COMBOS / L5_BANK / L6_BANK`，方便加题和写自动化测试；加题只需往数组里追加
 - L5 新增句子时，`decoys` 不能与 `tokens` 重复，且词块之间不能互为前缀（否则切分/拼句会有歧义）
 - 验证脚本在会话工作区 `.tmp/e2e-random.mjs`（CDP 直连本机 Chrome，无需装 Playwright），会读题库反查答案并断言「重试换题」「换局换题」
+
+## 11. 局域网访问（2026-11-09）
+
+本机局域网 IP：**192.168.68.17**（网卡「以太网」，掩码 255.255.248.0/21，网关 192.168.70.1）。
+
+| 入口 | 地址 |
+| --- | --- |
+| 前端（其他设备） | `http://192.168.68.17:5173` |
+| 后端（其他设备） | `http://192.168.68.17:8081/api` |
+| 本机自测 | `http://localhost:5173`、`http://127.0.0.1:8081/api` |
+
+**改了什么**
+- `swallowed-star-vue/vite.config.js`：`host: '0.0.0.0'`（原 `host: true` 再显式化）、`strictPort: true`、
+  `allowedHosts: true`、`preview.host: '0.0.0.0'`；代理 target 改为 `http://192.168.68.17:8081`。
+  顶部集中定义 `LAN_HOST / FRONTEND_PORT / BACKEND_PORT / API_TARGET`，支持环境变量
+  `VITE_LAN_HOST`、`VITE_FRONTEND_PORT`、`VITE_BACKEND_PORT`、`VITE_API_TARGET` 覆盖。
+- `springBootTest/src/main/resources/application-dev.properties`：新增 `server.address=0.0.0.0`
+  （显式监听所有网卡；若写 127.0.0.1 则只有本机可访问）。
+- `start.bat`：新增 `LAN_IP` 变量，启动/完成提示里改打印局域网地址（仍为 GBK 编码）。
+- CORS 无需改动：`config/CorsConfig.java` 已是 `allowedOriginPatterns("**")` + `allowCredentials(true)`。
+- 前端 API 仍是相对路径 `/api`（`src/api/http.js`、`src/api/admin.js`），由 Vite 代理转发，
+  所以在局域网设备上打开也不会出现跨域/硬编码地址问题。
+
+**换网络/换机器要改的地方**（只有两处）
+1. `vite.config.js` 的 `LAN_HOST`
+2. `start.bat` 的 `SET "LAN_IP=..."`
+（或直接用环境变量 `VITE_LAN_HOST` 覆盖前端，后端 properties 无需改，`0.0.0.0` 与具体 IP 无关）
+
+## 12. 闭关修炼消耗宇宙币（2026-11-09）
+
+按用户要求把 `/cultivate` 的「实修冥想」改为**花钱修炼、逐级突破**（原版点「入定」会自动涨念力并自动连续突破）。
+
+**规则**
+- 每次修炼扣 `200 × (当前境界序号+1)` 宇宙币，念力 +当前境界跨度的 5%（约 20 次攒满一境）
+- 念力 100% 后必须点「突破」另付 `10000 × (序号+1)`，一次只升一境；不满足条件会被拒绝
+- 境界序号存 `ss_cultivate_realm`，念力存 `ss_cultivate_power`（旧存档按阈值反推一次）
+- 至最高境界（不朽境）后按钮禁用；「归零重练」清空进度但**不退币**
+
+**共享钱包**
+- 新增 `src/composables/useWallet.js`：模块级单例 ref，key `ss_coins`，默认 500000
+- `Market.vue` 的 `balance` 改为从钱包读取（购买走 `spend()`，余额不足原子拒绝）
+- ⚠️ 坑：`Number(localStorage.getItem(k))` 在 key 不存在时返回 **0**（Number(null)=0），初始余额必须判 `raw === null`
+
+**验证**：CDP 无头 Chrome 跑通 23 项断言（扣费/拒绝跳级/封顶/持久化/商城余额共享），脚本在会话工作区 `.tmp/verify-cultivate.mjs`。
+
+
 
 
 

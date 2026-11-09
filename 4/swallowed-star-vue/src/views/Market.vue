@@ -137,8 +137,11 @@ import SiteNav from '../components/SiteNav.vue'
 import { GOODS } from '../data/lore.js'
 import { fetchLore } from '../api/lore.js'
 import { useToast } from '../composables/useToast.js'
+import { useWallet } from '../composables/useWallet.js'
 
 const { show } = useToast()
+// 宇宙币与「意识修炼」共用同一份余额（localStorage 持久化）
+const { coins: balance, spend } = useWallet()
 
 // 优先使用后台管理的数据；后端不可用时兜底本地 lore.js
 const goods = ref([...GOODS])
@@ -170,7 +173,6 @@ onMounted(async () => {
 })
 
 const cat = ref('全部')
-const balance = ref(500000)
 const cart = ref([])
 const sort = ref('default')
 
@@ -243,12 +245,12 @@ function ask(g) {
 
 function checkout() {
   if (!cart.value.length) return
-  if (total.value > balance.value) {
+  // 扣款（余额不足时 spend 返回 false，不会动余额）
+  if (!spend(total.value)) {
     show('余额不足，宇宙币可不会凭空长出来', 'err')
     return
   }
-  // 扣款 + 写入背包 + 扣减库存
-  balance.value -= total.value
+  // 写入背包 + 扣减库存
   cartItems.value.forEach((g) => {
     addToBag(g)
     if (g.stock > 0) g.stock -= 1

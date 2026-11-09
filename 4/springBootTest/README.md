@@ -1,4 +1,4 @@
-# 吞噬星空 · 后端服务（Spring Boot）
+﻿# 吞噬星空 · 后端服务（Spring Boot）
 
 星域登录 / 注册后端，为桌面 `swallowed-star-vue` 前端提供认证接口。
 
@@ -52,7 +52,8 @@ mvn -DskipTests package
 java -jar target/springBootTest-0.0.1-SNAPSHOT.jar --server.port=8081 --spring.profiles.active=dev
 ```
 
-启动后接口基址：`http://127.0.0.1:8081/api`
+启动后接口基址：`http://127.0.0.1:8081/api`（本机）／`http://192.168.68.17:8081/api`（局域网，
+已在 `application-dev.properties` 中配置 `server.address=0.0.0.0` 监听所有网卡）
 
 ## 接口一览
 

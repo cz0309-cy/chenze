@@ -95,11 +95,11 @@
         </section>
       </div>
 
-      <!-- 实修冥想 -->
+      <!-- 闭关修炼：消耗宇宙币，一境一境往上走 -->
       <section class="card med-card">
         <div class="card-head">
-          <h3>实修冥想</h3>
-          <span>点击「入定」积累念力，突破境界</span>
+          <h3>闭关修炼</h3>
+          <span>每次修炼消耗宇宙币；念力圆满后另付突破费用，方可晋升一境</span>
         </div>
         <div class="med-body">
           <div class="med-state">
@@ -110,6 +110,10 @@
             <div class="med-power">
               <span>念力修为</span>
               <b>{{ fmtPower(power) }}</b>
+            </div>
+            <div class="med-wallet">
+              <span>宇宙币余额</span>
+              <b>{{ coins.toLocaleString() }}</b>
             </div>
           </div>
 
@@ -122,14 +126,25 @@
           </div>
 
           <div class="med-actions">
-            <button class="btn-gold" :class="{ active: meditating }" @click="toggleMeditate">
-              {{ meditating ? '■ 出定（暂停）' : '◎ 入定（开始冥想）' }}
+            <button class="btn-gold" :disabled="!medNextRealm" @click="cultivate">
+              {{ medNextRealm ? '闭关修炼 · ' + cultivateCost.toLocaleString() + ' 宇宙币' : '已至最高境界' }}
+            </button>
+            <button class="mj-btn" :disabled="!medNextRealm" @click="breakthrough">
+              {{
+                medNextRealm
+                  ? '突破「' + medNextRealm.name + '」· ' + breakthroughCost.toLocaleString() + ' 宇宙币'
+                  : '无境可破'
+              }}
             </button>
             <button class="mj-btn ghost" @click="resetPower">归零重练</button>
           </div>
 
           <p class="med-tip">
-            冥想时念力持续增长，但越接近瓶颈增长越慢——真正的突破，靠的是法则感悟，不只是时间。
+            单次修炼：消耗 {{ cultivateCost.toLocaleString() }} 宇宙币，念力 +{{
+              gainPerClick.toFixed(2)
+            }}
+            万；念力攒满当前境界（100%）后，再支付 {{ breakthroughCost.toLocaleString() }} 宇宙币才能突破。
+            境界越高，修炼与突破越贵，且一次只能晋升一境。
           </p>
         </div>
       </section>
@@ -152,11 +167,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
 import { REALMS, ARTS } from '../data/lore.js'
 import { fetchLore } from '../api/lore.js'
 import { useToast } from '../composables/useToast.js'
+import { useWallet } from '../composables/useWallet.js'
 
 const { show } = useToast()
 
@@ -198,8 +214,6 @@ onMounted(async () => {
   }
 })
 
-onBeforeUnmount(stopMeditate)
-
 const selectedId = ref('shape')
 const selected = computed(
   () => realms.value.find((r) => r.id === selectedId.value) || realms.value[0]
@@ -237,35 +251,43 @@ function fmtPower(v) {
   return v.toFixed(v < 10 ? 2 : 0) + ' 万 念力单位'
 }
 
-// ---------- 增强：实修冥想系统 ----------
-const STORE_KEY = 'ss_cultivate_power'
+// ---------- 闭关修炼：消耗宇宙币，一境一境往上走 ----------
+const { coins, spend } = useWallet()
+
+const POWER_KEY = 'ss_cultivate_power'
+const REALM_KEY = 'ss_cultivate_realm'
+
 const power = ref(loadPower())
-const meditating = ref(false)
-let meditateTimer = null
+// 当前境界序号单独存：突破只能 +1，不会因为念力数值变大而自动跳级
+const realmIdx = ref(loadRealmIdx())
 
 function loadPower() {
-  const v = parseFloat(localStorage.getItem(STORE_KEY))
+  const v = parseFloat(localStorage.getItem(POWER_KEY))
   return isFinite(v) && v > 0 ? v : 1
 }
-function savePower() {
-  localStorage.setItem(STORE_KEY, String(power.value))
+
+// 兼容旧存档：没有境界序号记录时，按念力阈值反推一次
+function loadRealmIdx() {
+  const saved = parseInt(localStorage.getItem(REALM_KEY), 10)
+  if (isFinite(saved) && saved >= 0) return saved
+  const p = loadPower()
+  let idx = 0
+  REALMS.forEach((r, i) => {
+    if (p >= r.min) idx = i
+  })
+  return idx
 }
 
-// 当前境界与下一境界（按 real 的 min 阈值）
-const medCurRealm = computed(() => {
-  let idx = 0
-  realms.value.forEach((r, i) => {
-    if (power.value >= r.min) idx = i
-  })
-  return realms.value[idx]
-})
-const medNextRealm = computed(() => {
-  let idx = 0
-  realms.value.forEach((r, i) => {
-    if (power.value >= r.min) idx = i
-  })
-  return realms.value[idx + 1] || null
-})
+function saveProgress() {
+  localStorage.setItem(POWER_KEY, String(power.value))
+  localStorage.setItem(REALM_KEY, String(realmIdx.value))
+}
+
+// 防止后台删减境界后序号越界
+const curIdx = computed(() => Math.min(realmIdx.value, Math.max(0, realms.value.length - 1)))
+const medCurRealm = computed(() => realms.value[curIdx.value])
+const medNextRealm = computed(() => realms.value[curIdx.value + 1] || null)
+
 const breakthroughProgress = computed(() => {
   const cur = medCurRealm.value
   const nxt = medNextRealm.value
@@ -274,43 +296,67 @@ const breakthroughProgress = computed(() => {
   return Math.min(100, Math.max(0, Math.round(ratio * 100)))
 })
 
-function toggleMeditate() {
-  if (meditating.value) stopMeditate()
-  else startMeditate()
+// 价格梯度：觉醒境 200 / 次、突破 1 万；每升一境各 +200 / +1 万
+const cultivateCost = computed(() => 200 * (curIdx.value + 1))
+const breakthroughCost = computed(() => 10000 * (curIdx.value + 1))
+// 单次收益 = 当前境界跨度的 5%，约 20 次修炼攒满一境（保证是「一步一步」而不是一步登天）
+const gainPerClick = computed(() => {
+  const cur = medCurRealm.value
+  const nxt = medNextRealm.value
+  if (!nxt) return 0
+  return Math.max(0.1, (nxt.min - cur.min) * 0.05)
+})
+
+function cultivate() {
+  const nxt = medNextRealm.value
+  if (!nxt) {
+    show('已至已知最高境界，无需再修炼')
+    return
+  }
+  if (breakthroughProgress.value >= 100) {
+    show('念力已至瓶颈，请先完成突破', 'err')
+    return
+  }
+  const cost = cultivateCost.value
+  if (!spend(cost)) {
+    show(`宇宙币不足，本次修炼需要 ${cost.toLocaleString()} 宇宙币`, 'err')
+    return
+  }
+  power.value = Math.min(nxt.min, Number((power.value + gainPerClick.value).toFixed(2)))
+  saveProgress()
+
+  if (power.value >= nxt.min) {
+    show(`念力圆满，可支付 ${breakthroughCost.value.toLocaleString()} 宇宙币突破「${nxt.name}」`, 'ok')
+  } else {
+    show(`闭关一日，念力 +${gainPerClick.value.toFixed(2)} 万，消耗 ${cost.toLocaleString()} 宇宙币`)
+  }
 }
-function startMeditate() {
-  meditating.value = true
-  meditateTimer = setInterval(() => {
-    // 每次冥想：当前值递增，越接近瓶颈增长越慢
-    const cur = medCurRealm.value
-    const nxt = medNextRealm.value
-    if (!nxt) {
-      stopMeditate()
-      return
-    }
-    const span = nxt.min - cur.min
-    const step = Math.max(1, span * 0.02)
-    power.value = Math.min(nxt.min, power.value + step)
-    savePower()
-    if (power.value >= nxt.min) {
-      // 突破
-      showBreakthrough(nxt)
-    }
-  }, 600)
-}
-function stopMeditate() {
-  meditating.value = false
-  if (meditateTimer) clearInterval(meditateTimer)
-  meditateTimer = null
-  savePower()
-}
-function showBreakthrough(realm) {
-  show(`✦ 念力突破！踏入「${realm.name}」`, 'ok')
+
+function breakthrough() {
+  const nxt = medNextRealm.value
+  if (!nxt) {
+    show('已至已知最高境界，无境可破')
+    return
+  }
+  if (breakthroughProgress.value < 100) {
+    show('念力尚未圆满，继续闭关修炼', 'err')
+    return
+  }
+  const cost = breakthroughCost.value
+  if (!spend(cost)) {
+    show(`宇宙币不足，突破需要 ${cost.toLocaleString()} 宇宙币`, 'err')
+    return
+  }
+  realmIdx.value = curIdx.value + 1
+  power.value = nxt.min
+  saveProgress()
+  show(`✦ 突破成功！踏入「${nxt.name}」`, 'ok')
 }
 
 function resetPower() {
+  realmIdx.value = 0
   power.value = 1
-  savePower()
-  stopMeditate()
+  saveProgress()
+  show('已归零重练，回到觉醒境（已消耗的宇宙币不退还）')
 }
 </script>
