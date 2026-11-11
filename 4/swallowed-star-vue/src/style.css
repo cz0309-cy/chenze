@@ -22,11 +22,12 @@ html,body{height:100%}
 body{
   font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color:var(--text);
+  /* 深空星空底图（银河带 + 星云 + 三层星点），由 public/bg-starfield.jpg 提供 */
   background:
     linear-gradient(180deg, rgba(4,6,15,.46) 0%, rgba(4,6,15,.30) 45%, rgba(4,6,15,.62) 100%),
     radial-gradient(1200px 700px at 78% -8%, rgba(169,123,255,.12), transparent 60%),
     radial-gradient(900px 600px at 8% 110%, rgba(102,224,255,.10), transparent 60%),
-    url("/bg.jpeg") center 30% / cover no-repeat var(--bg);
+    url("/bg-starfield.jpg") center 40% / cover no-repeat var(--bg);
   min-height:100%;
   overflow:hidden;
   position:relative;
@@ -404,5 +405,6 @@ body{
   .panel{padding:24px 18px 22px}
   .brand h1{font-size:22px;letter-spacing:4px}
   .captcha-canvas{flex-basis:112px}
-  body{background-position:center,center,center,72% 30%}
+  /* 星空底图居中裁切，窄屏也落在银河带上 */
+  body{background-position:center,center,center,center}
 }

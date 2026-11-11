@@ -8,6 +8,7 @@ import Market from '../views/Market.vue'
 import Cultivate from '../views/Cultivate.vue'
 import Character from '../views/Character.vue'
 import StarGame from '../views/StarGame.vue'
+import BattleArena from '../views/BattleArena.vue'
 // TODO: Mahjong.vue / ArtHall.vue 页面文件尚未创建，入口暂时隐藏，补做后恢复
 import AdminLogin from '../views/admin/AdminLogin.vue'
 import AdminLayout from '../views/admin/AdminLayout.vue'
@@ -35,6 +36,7 @@ const routes = [
   { path: '/cultivate', name: 'cultivate', component: Cultivate, meta: { auth: true } },
   { path: '/character', name: 'character', component: Character, meta: { auth: true } },
   { path: '/treasure', name: 'treasure', component: StarGame, meta: { auth: true } },
+  { path: '/battle', name: 'battle', component: BattleArena, meta: { auth: true } },
   // 旧地址兼容：原「星骸远航」已改为「秘境寻宝」
   { path: '/stargame', redirect: '/treasure' },
   // { path: '/monster', name: 'monster', component: Mahjong, meta: { auth: true } },

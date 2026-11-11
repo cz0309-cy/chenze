@@ -109,39 +109,42 @@
           <component :is="levelComp" :key="levelKey" @pass="onPass" @fail="onFail" />
         </section>
 
-        <!-- 判罚弹层 -->
-        <div v-if="state.phase === 'verdict'" class="tg-mask">
-          <div class="tg-modal" :class="state.verdict.type">
-            <div class="tg-modal-ico">
-              {{ state.verdict.type === 'pass' ? '🌟' : state.verdict.retry ? '💥' : '🔥' }}
+        <!-- 判罚弹层：必须 Teleport 到 body —— .tg-page 有 animation(transform)，
+             会成为 position:fixed 的包含块，否则遮罩只盖住内容区而不是整个视口 -->
+        <Teleport to="body">
+          <div v-if="state.phase === 'verdict'" class="tg-mask">
+            <div class="tg-modal" :class="state.verdict.type">
+              <div class="tg-modal-ico">
+                {{ state.verdict.type === 'pass' ? '🌟' : state.verdict.retry ? '💥' : '🔥' }}
+              </div>
+
+              <template v-if="state.verdict.type === 'pass'">
+                <h3>第 {{ state.level }} 关 · 通过</h3>
+                <p>秘境又深了一层，前方是第 {{ state.verdict.to }} 关。</p>
+                <button type="button" class="tg-btn tg-gold tg-btn-lg" @click="nextLevel">
+                  进入第 {{ state.verdict.to }} 关
+                </button>
+              </template>
+
+              <template v-else-if="state.verdict.retry">
+                <h3>这关没过</h3>
+                <p class="tg-reason">{{ state.verdict.reason }}</p>
+                <p class="tg-sub">还有最后 <b>1</b> 次机会 —— 再失败就要退回上一关。</p>
+                <button type="button" class="tg-btn tg-gold tg-btn-lg" @click="replay">再试一次</button>
+              </template>
+
+              <template v-else>
+                <h3>两次都没过</h3>
+                <p class="tg-reason">{{ state.verdict.reason }}</p>
+                <p v-if="state.verdict.atStart" class="tg-sub">已经退无可退，回到起点重开第 1 关。</p>
+                <p v-else class="tg-sub">按规则退回第 {{ state.verdict.to }} 关，那一关的机会重新给满。</p>
+                <button type="button" class="tg-btn tg-gold tg-btn-lg" @click="retreat">
+                  {{ state.verdict.atStart ? '重开第 1 关' : `退回第 ${state.verdict.to} 关` }}
+                </button>
+              </template>
             </div>
-
-            <template v-if="state.verdict.type === 'pass'">
-              <h3>第 {{ state.level }} 关 · 通过</h3>
-              <p>秘境又深了一层，前方是第 {{ state.verdict.to }} 关。</p>
-              <button type="button" class="tg-btn tg-gold tg-btn-lg" @click="nextLevel">
-                进入第 {{ state.verdict.to }} 关
-              </button>
-            </template>
-
-            <template v-else-if="state.verdict.retry">
-              <h3>这关没过</h3>
-              <p class="tg-reason">{{ state.verdict.reason }}</p>
-              <p class="tg-sub">还有最后 <b>1</b> 次机会 —— 再失败就要退回上一关。</p>
-              <button type="button" class="tg-btn tg-gold tg-btn-lg" @click="replay">再试一次</button>
-            </template>
-
-            <template v-else>
-              <h3>两次都没过</h3>
-              <p class="tg-reason">{{ state.verdict.reason }}</p>
-              <p v-if="state.verdict.atStart" class="tg-sub">已经退无可退，回到起点重开第 1 关。</p>
-              <p v-else class="tg-sub">按规则退回第 {{ state.verdict.to }} 关，那一关的机会重新给满。</p>
-              <button type="button" class="tg-btn tg-gold tg-btn-lg" @click="retreat">
-                {{ state.verdict.atStart ? '重开第 1 关' : `退回第 ${state.verdict.to} 关` }}
-              </button>
-            </template>
           </div>
-        </div>
+        </Teleport>
       </template>
 
       <!-- ================= ③ 宝藏 ================= -->

@@ -79,10 +79,40 @@
 .nav-menu {
   overflow-x: auto;
   min-width: 0;
+  flex: 0 1 auto;
   scrollbar-width: none;
 }
 .nav-menu::-webkit-scrollbar {
   display: none;
+}
+/* 导航项增至 8 项后，1400 及以下靠收窄内边距吃下，避免一进来就要滚动。
+   阈值必须是 1400 而不是 1360：1366 宽的笔记本正好卡在中间，用 1360 时会漏掉、菜单溢出 70px。 */
+@media (max-width: 1400px) {
+  .topnav {
+    gap: 10px;
+    padding: 0 16px;
+  }
+  .nav-menu {
+    gap: 2px;
+    margin-left: 2px;
+  }
+  .nav-item {
+    padding: 8px 10px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+  }
+  .nav-item.active::after {
+    left: 10px;
+    right: 10px;
+  }
+}
+/* 顶栏的 logo / 时钟 / 用户区都不许折行：空间不够宁可让菜单自己横向滚动 */
+.topnav .logo,
+.topnav .clock,
+.nav-user,
+.btn-exit {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 /* ---------- 页面骨架 ---------- */

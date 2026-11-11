@@ -18,7 +18,7 @@
       <b>吞噬星空</b>
     </router-link>
 
-    <div class="nav-menu">
+    <div ref="menuEl" class="nav-menu">
       <router-link
         v-for="n in navs"
         :key="n.to"
@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getSession, logout } from '../composables/useAuth.js'
 
@@ -90,7 +90,8 @@ const navs = [
   { key: 'market', label: '奇物交易', to: '/market' },
   { key: 'cultivate', label: '意识修炼', to: '/cultivate' },
   { key: 'character', label: '人物档案', to: '/character' },
-  { key: 'treasure', label: '秘境寻宝', to: '/treasure' }
+  { key: 'treasure', label: '秘境寻宝', to: '/treasure' },
+  { key: 'battle', label: '星域擂台', to: '/battle' }
 ]
 
 const session = getSession()
@@ -115,6 +116,22 @@ function isActive(n) {
   return route.path === n.to
 }
 
+// 导航项已有 8 个（秘境寻宝 / 星域擂台），窄屏下菜单会横向滚动。
+// 这里保证「当前页」那一项始终滚到可视区内，否则进来会看不到自己高亮在哪。
+const menuEl = ref(null)
+async function revealActive(behavior = 'smooth') {
+  await nextTick()
+  const menu = menuEl.value
+  if (!menu) return
+  const el = menu.querySelector('.nav-item.active')
+  if (!el) return
+  const m = menu.getBoundingClientRect()
+  const a = el.getBoundingClientRect()
+  if (a.left >= m.left && a.right <= m.right) return // 已经整块可见，不做无谓滚动
+  menu.scrollTo({ left: menu.scrollLeft + (a.left - m.left) - 8, behavior })
+}
+watch(() => route.path, () => revealActive())
+
 function goLogout() {
   logout()
   router.push('/login')
@@ -129,6 +146,7 @@ onMounted(() => {
   timer = setInterval(tick, 1000)
   const s = getSession()
   if (s) nickname.value = s.nickname || s.username || nickname.value
+  revealActive('auto') // 首屏也要把当前页那一项摆到看得见的位置
 })
 onBeforeUnmount(() => clearInterval(timer))
 </script>

@@ -94,8 +94,12 @@
 - `Home.vue` 已改为全后端驱动：概览统计、热词、分类筛选、关键词检索、综合/最热/最新排序、分页、骨架屏、错误重试、详情弹层（Teleport）
 
 ## 8. 前端页面与模块（2026-10-19 扩充）
-所有页面统一使用 `components/SiteNav.vue`（原 Home 内联导航已抽出，六项菜单 + 时钟 + 退出）。
+所有页面统一使用 `components/SiteNav.vue`（原 Home 内联导航已抽出，现为**八项菜单** + 时钟 + 退出）。
 路由均在 `meta.auth` 保护下，无 `ss_token` 跳登录页。
+
+> 导航加到 8 项后的两条配套（2026-11-11）：`SiteNav` 在路由变化 / 首屏时把当前页那一项 `scrollTo` 进可视区
+> （窄屏菜单是横向滚动的，否则进来看不到自己高亮在哪）；`pages.css` 里 ≤1360px 收窄 nav-item 内边距，
+> 并让 logo / 时钟 / 用户区 `white-space:nowrap`，否则 1180 宽度下这几块会被挤成两行。
 
 | 路由 | 文件 | 内容 |
 | --- | --- | --- |
@@ -105,10 +109,19 @@
 | `/market` | `views/Market.vue` | 奇物交易：11 件货品、稀有度、采购清单与余额结算 |
 | `/cultivate` | `views/Cultivate.vue` | 意识修炼：七境阶梯、境界详情、念力推演滑杆、四大秘法 |
 | `/character` | `views/Character.vue` | 人物档案：罗峰 / 巴巴塔 / 徐欣 / 雷神，含能力条、时间线、关系网 |
+| `/battle` | `views/BattleArena.vue` | 星域擂台：回合制对战（见第 13 节） |
 
 - 数据层：`src/data/lore.js`（STAR_REGIONS / CIVS / GOODS / REALMS / ARTS / CHARACTERS），全部为前端演示数据，接后端时按同名结构替换即可。
 - 样式：`src/styles/pages.css`（模块页专属，已在 `main.js` 引入），沿用 `style.css` 的 CSS 变量与金色科幻风格。
 - 备份：`src_backup_20261019/`（本次改动前的 src 快照，确认无误后可删）。
+
+**全站背景（2026-11-11 改为星空）**
+- `style.css` 的 `body` 用 4 层 `background`：暗角渐变 → 紫 / 青两团径向光 → 星空图 `public/bg-starfield.jpg`（`center 40% / cover`）。
+- 星空图 2400×1330、约 330KB，程序生成（银河带 + 星云 + 三层星点 + 十字星芒 + 抖动去色带），
+  色相取自 `--gold` / `--cyan` / `--violet`，与全站配色一致；生成脚本在会话工作区 `.tmp/gen-starfield.py`。
+- 原来的 `public/bg.jpeg` 是官方海报（带角色和「吞噬星空」logo 水印），**已停用但保留在仓库里**；
+  回滚只需把 `url()` 改回 `/bg.jpeg`，移动端那条 `background-position` 也要一并改回 `72% 30%`。
+- `components/Starfield.vue` 的 canvas 叠在背景之上，继续画动态闪烁星点与流星，与静态底图不冲突。
 
 ## 9. 后台管理系统（2026-10-26 收敛为四模块）
 前台导航栏新增「后台管理系统」按钮 → `/admin/login`（仅登录无注册）→ `/admin` 数据管理台。
@@ -194,6 +207,9 @@
 - `questionBank.js` 导出了 `L1_POOL / L3_BANK / L4_COMBOS / L5_BANK / L6_BANK`，方便加题和写自动化测试；加题只需往数组里追加
 - L5 新增句子时，`decoys` 不能与 `tokens` 重复，且词块之间不能互为前缀（否则切分/拼句会有歧义）
 - 验证脚本在会话工作区 `.tmp/e2e-random.mjs`（CDP 直连本机 Chrome，无需装 Playwright），会读题库反查答案并断言「重试换题」「换局换题」
+- ⚠️ 2026-11-11：判罚弹层已改为 `<Teleport to="body">`。原因是 `.tg-page` 带 `animation: rise`
+  （transform 会让祖先成为 `position: fixed` 的包含块），不 Teleport 的话 `.tg-mask` 只盖住内容区、而不是整个视口
+  （以前表现为遮罩右侧/下方露出一条没变暗的背景）。新写的弹层同理。
 
 ## 11. 局域网访问（2026-11-09）
 
@@ -238,6 +254,83 @@
 - ⚠️ 坑：`Number(localStorage.getItem(k))` 在 key 不存在时返回 **0**（Number(null)=0），初始余额必须判 `raw === null`
 
 **验证**：CDP 无头 Chrome 跑通 23 项断言（扣费/拒绝跳级/封顶/持久化/商城余额共享），脚本在会话工作区 `.tmp/verify-cultivate.mjs`。
+
+## 13. 星域擂台 · 回合制对战（2026-11-11）
+
+路由 `/battle`（`views/BattleArena.vue`），入口同时加在顶部导航（第 8 项）和首页模块卡片里。
+
+**玩法**：先选模式（人机 / 双人，见 13.1）→ 选人物 →（人机模式再选对手与难度）→ 回合制对决。
+每回合双方**同时**下令，四选一：普攻 / 护体 / 凝神 / 秘法。
+速度决定出手顺序，先手打死对手则对手当回合无法出手。
+
+**文件分工**
+| 文件 | 职责 |
+| --- | --- |
+| `game/battle/roster.js` | 只放数值与文案：2 种模式、4 名出战者、4 名对手、4 个指令、3 档难度、公式常量 |
+| `game/battle/engine.js` | 状态机 `createBattle()`：开局（人机 / 双人）、回合结算、AI 决策、胜负、战绩、奖励 |
+| `views/BattleArena.vue` | 选人页 / 对局页 / 结算弹层（弹层用 `Teleport to="body"`） |
+| `styles/battle.css` | `.bt-*` 全部样式，`main.js` 中引入 |
+
+**结算公式（页面上有同名文案，改公式要同步改文案）**
+- 伤害 = `攻击 × 倍率 − 对方防御 × 0.5`，再乘 0.9–1.1 浮动；暴击概率 `0.08 + 速度×0.004`（上限 0.22），暴击 ×1.6
+- 护体：本回合减伤 60%、回念 12；凝神：回念 30、本回合多受 20% 伤害；秘法：耗念 45、倍率 ×2
+- 每回合末双方自然回念 6；秘法特效四种：吸血 / 穿透（无视护体）/ 治疗 / 吸念
+- 对手数值按难度缩放：寻常 ×0.85 生命、×0.9 攻击；险境 ×1；深渊 ×1.08、×1.05
+  （`smart` 只调 AI 策略权重，不偷偷改伤害公式）
+
+**数据取舍**
+- 4 名出战者取自 `data/lore.js` 的人物档案（罗峰 / 雷神 / 徐欣 / 巴巴塔），数值由能力条折算，未新增人物
+- 4 名对手取自文明图鉴的敌对势力：金角巨兽（星空巨兽联盟）/ 母巢意志（虫族）/
+  湮灭者（机械族）/ 未名者（幽暗宇宙）
+
+**奖励与存档**
+- 胜：宇宙币 1500 / 2400 / 3600（对应三档难度），败：200 补贴，走 `useWallet().earn()`
+- 战绩 `ss_battle_record`：`{ wins, losses, streak, bestStreak }`
+- 奖励幂等：`claimReward()` 只发一次，`begin()` 时才重置 `rewarded`
+- 发币在 `phase === 'over'` 时**立刻**执行，只有弹层延后 780ms；
+  千万别把 `award()` 塞进延时里，否则最后一下打死对手后马上切页会「赢了没拿币」
+
+**坑（已踩过）**
+- `.bt-page` 有 `animation: rise`（含 transform），会成为 `position:fixed` 的包含块 →
+  结算遮罩必须 `Teleport to="body"`，否则只盖住内容区那一块（`treasure.css` 的 `.tg-mask` 同一问题已在 2026-11-11 一并修好）
+- 页面级 `computed` 挂在 `createBattle()` 的返回值上（如 `hpPct/mpPct`），别写成 `state.xxx`
+- 模板里 `<Teleport>` 少一个 `</div>` 会让 Vue 报 `Element is missing end tag`，整页白屏
+
+**验证**：`npm run build` 通过；node 跑引擎模拟 4800 局（`.tmp/sim-battle.mjs`）——
+寻常胜率 76–92%、险境 47–76%、深渊 30–58%，平均 5.5–7.4 回合；
+CDP 无头 Chrome 走通「登台 → 回合 → 结算 → 换个对手 → 再战」全链路，控制台 0 报错。
+全站回归脚本 `.tmp/regress-all.mjs`：8 个页面 × 1440/1180 两种宽度，断言路径、标题、导航 8 项、
+当前项可见、无横向溢出、0 报错。
+
+### 13.1 双人对战与人物对战（2026-11-11 追加）
+
+**两种模式**（`state.mode`，选人页顶部切换，文案在 `roster.js` 的 `MODES`）
+- `ai` 挑战星域强敌：对手可以是 4 只星域巨兽，也可以是 4 个人物（同一个 `aiPick()` 操控，数值照样按难度缩放）
+- `pvp` 双人对战：两人同屏，各从 4 个人物里选一个。允许选同一个人物 = 镜像对决，数值不做难度缩放
+
+**双人保密流程**（本机同屏，靠交接遮挡做出信息不对称 —— 否则就是两个人明牌猜拳）
+1. `state.turn = 0`，等 P1 下令
+2. P1 点指令 → 引擎只把结果写进 `state.pending[0]`，`turn = 'handoff'`，**不结算**
+3. 页面弹出 `.bt-mask.solid` 全屏遮挡（`rgba(3,5,14,.94)` + `blur(14px)`，`z-index: 9`），按钮「我是 P2」
+4. `handoff()` → `turn = 1`，轮到 P2
+5. P2 指令进 `pending[1]` → 两边一起 `resolveRound(a, b)` → `turn` 归 0
+
+两个容易翻车的点：
+- 结算前 `state.pick` 不更新，所以 `bt-f-pick` 一直显示上一回合（首回合是「待命」），
+  DOM 里查不到 P1 这一手；`pending` 绝对不能直接渲染到模板上
+- 遮罩必须够暗。用普通 `.bt-mask`（0.72 + blur 6px）时，背后按钮的轮廓仍隐约可见，等于告诉 P2 刚才点的是哪一格
+- P2 下令后页面锁 1.2 秒（`pvpLock`）再放开，让两人都看清这一下的飘字和血条
+
+**双人结算**
+- `finish()` 里 `mode === 'pvp'` 分支：`reward = 0`、不写 `ss_battle_record`、不调 `useWallet`
+- 弹层换成「双方剩余生命 / 回合数 / 切磋局」，按钮是「重新选人 / 再来一局」
+- 不给币是刻意的：同屏两个人轮流刷币会直接把商城经济搞坏
+
+**其它**
+- 秘法可用性按「当前下令方」算（`canArtNow` 取 `activeSide` 的念力），不能沿用写死左侧的 `canUseArt`
+- 键盘 1–4 只对当前下令方生效；交接遮挡期间 `choose()` 直接 return
+- `play()` 里加了 `mode === 'pvp'` 守卫，双人模式只能走 `submitPvp()`，防止两条路径混用
+
 
 
 
