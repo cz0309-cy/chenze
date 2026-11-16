@@ -21,7 +21,7 @@
     已改为 `CREATE DATABASE IF NOT EXISTS`（幂等、不破坏数据），表仍由启动时 `schema.sql` 自动创建。
   - 构建产物：`target/springBootTest-0.0.1-SNAPSHOT.jar`
 - `swallowed-star-vue/` —— 前端 (Vue3 + Vite5)
-  - 代理：`vite.config.js` 把 `/api` 代理到 `http://192.168.68.17:8081`（局域网 IP，见第 11 节）
+  - 代理：`vite.config.js` 把 `/api` 代理到 `http://192.168.68.43:8081`（局域网 IP，见第 11 节）
   - 脚本：`npm run dev`(5173) / build / preview / lint / format
   - 依赖锁：`package-lock.json` 存在，可用 `npm ci`
 
@@ -66,7 +66,7 @@
 
 ## 6. 接口速查
 - 本机基址：`http://127.0.0.1:8081/api`
-- 局域网基址：`http://192.168.68.17:8081/api`
+- 局域网基址：`http://192.168.68.43:8081/api`
 - GET `/api/auth/me`（带 `Authorization: Bearer <token>`）
 - POST `/api/auth/login` `{username,password}` → token
 - POST `/api/auth/register` `{username,password}`
@@ -213,17 +213,17 @@
 
 ## 11. 局域网访问（2026-11-09）
 
-本机局域网 IP：**192.168.68.17**（网卡「以太网」，掩码 255.255.248.0/21，网关 192.168.70.1）。
+本机局域网 IP：**192.168.68.43**（网卡「以太网」，掩码 255.255.248.0/21，网关 192.168.70.1）。
 
 | 入口 | 地址 |
 | --- | --- |
-| 前端（其他设备） | `http://192.168.68.17:5173` |
-| 后端（其他设备） | `http://192.168.68.17:8081/api` |
+| 前端（其他设备） | `http://192.168.68.43:5173` |
+| 后端（其他设备） | `http://192.168.68.43:8081/api` |
 | 本机自测 | `http://localhost:5173`、`http://127.0.0.1:8081/api` |
 
 **改了什么**
 - `swallowed-star-vue/vite.config.js`：`host: '0.0.0.0'`（原 `host: true` 再显式化）、`strictPort: true`、
-  `allowedHosts: true`、`preview.host: '0.0.0.0'`；代理 target 改为 `http://192.168.68.17:8081`。
+  `allowedHosts: true`、`preview.host: '0.0.0.0'`；代理 target 改为 `http://192.168.68.43:8081`。
   顶部集中定义 `LAN_HOST / FRONTEND_PORT / BACKEND_PORT / API_TARGET`，支持环境变量
   `VITE_LAN_HOST`、`VITE_FRONTEND_PORT`、`VITE_BACKEND_PORT`、`VITE_API_TARGET` 覆盖。
 - `springBootTest/src/main/resources/application-dev.properties`：新增 `server.address=0.0.0.0`
@@ -237,6 +237,10 @@
 1. `vite.config.js` 的 `LAN_HOST`
 2. `start.bat` 的 `SET "LAN_IP=..."`
 （或直接用环境变量 `VITE_LAN_HOST` 覆盖前端，后端 properties 无需改，`0.0.0.0` 与具体 IP 无关）
+
+> ⚠️ 2026-11-16：本机 IP 由 DHCP 重新分配为 **192.168.68.43**（原 192.168.68.17，掩码 255.255.248.0/21 与网关 192.168.70.1 未变）。
+> 已同步更新 `vite.config.js` / `start.bat` / 两份 README / `application-dev.properties` 注释，共 6 个文件 13 处。
+> 本机 IP 会随网络环境变化，下次局域网地址打不开时先跑 `ipconfig` 复核，再改上面那两处即可。
 
 ## 12. 闭关修炼消耗宇宙币（2026-11-09）
 
@@ -256,6 +260,35 @@
 **验证**：CDP 无头 Chrome 跑通 23 项断言（扣费/拒绝跳级/封顶/持久化/商城余额共享），脚本在会话工作区 `.tmp/verify-cultivate.mjs`。
 
 ## 13. 星域擂台 · 回合制对战（2026-11-11）
+
+> 🔴 **2026-11-16 现状：星域擂台模块的源文件已丢失，入口已临时注释。**
+> 缺失：`src/views/BattleArena.vue`、`src/styles/battle.css`、`src/game/battle/`（`roster.js` + `engine.js`）。
+> 后果：Vite 报 `Failed to resolve import "./styles/battle.css"` / `../views/BattleArena.vue`，**整站白屏**。
+> 处理：已注释 4 处引用（`main.js` 的 css import、`router/index.js` 的 import + 路由、`Home.vue` 模块卡片、`SiteNav.vue` 导航项），
+> 均带 `TODO` 标记。**补回上述 4 个文件后逐一取消注释即可恢复**，不要只取消一半。
+> 排查口诀：页面白屏就先看 `npm run build` 或 Vite 终端的 `Failed to resolve import`，别先去怀疑 IP / 代理 / 跨域。
+> 本节 13 / 13.1 的规则、公式、文件分工仍然有效，可作为重写该模块的完整规格。
+
+### 13.2 以修为对战（2026-11-16 重写）
+
+应要求把「星域擂台」从**固定数值（hp/atk/def/spd）回合制**改为**以自身修为对战**：
+
+- **修为来源**：读取 `/cultivate` 存的 `ss_cultivate_realm`（境界序号 0–6）+ `ss_cultivate_power`（念力，单位「万」）。
+  每次登台（`startBattle`）都重读一次，刚突破也能立刻生效。
+- **血条 = 修为**：`powerToHp()` 用 log10 映射把「1 万 ~ 100 万」映射到「20 ~ 140」，
+  保证跨境界同屏可比较（修为每 ×10，血条 +20）。**不要**直接用原始「万」数值当血条，
+  否则 1 万（觉醒境）只有 1 点血，一下就被打死。
+- **攻击 = 血条 × attackRatio(0.18) × (1 + 境界 × 0.12)**，攻击力保留小数、结算伤害时再取整。
+- **境界压制**：每差一境，高境增伤 8%、低境减伤 8%（`suppressionPerTier = 0.08`）。
+- **防御减伤**：境界阶 × 3%（`defenseRatio = 0.03`，百分比减伤，非绝对值）。
+- 人物（FIGHTERS）不再有 hp/atk/def/spd，只有 `art` 秘法；巨兽（FOES）各有 `tier` 境界阶（3–6），
+  难度（DIFFICULTY）用 `tierAdj`（境 ±1）+ `pow`（修为倍率）缩放，不再用 hp/atk 倍率。
+
+**平衡模拟结果**（`.sim-battle.mjs`，已删，需时重建）：玩家境界 0→6 对金角巨兽(tier4)胜率
+3.7% → 12% → 29% → 54% → 88% → 98% → 99.8%，平均 3.6–5 回合；境界压制清晰、节奏正常。
+
+**坑**：伤害公式若把「剩余修为」直接当攻击力，会因「血条=修为」导致一下互秒（模拟暴露 1.1 回合）。
+正确做法是攻击力 = 修为 × 固定小比例（attackRatio），修为作为血条承担被削减，境界决定每次威力。
 
 路由 `/battle`（`views/BattleArena.vue`），入口同时加在顶部导航（第 8 项）和首页模块卡片里。
 

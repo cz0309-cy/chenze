@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue'
 
 // ===== 局域网调试配置 =====
 // 本机局域网 IP（换网络/换机器时只改这一行）
-const LAN_HOST = process.env.VITE_LAN_HOST || '192.168.68.17'
+const LAN_HOST = process.env.VITE_LAN_HOST || '192.168.68.43'
 const FRONTEND_PORT = Number(process.env.VITE_FRONTEND_PORT || 5173)
 const BACKEND_PORT = Number(process.env.VITE_BACKEND_PORT || 8081)
 const API_TARGET = process.env.VITE_API_TARGET || `http://${LAN_HOST}:${BACKEND_PORT}`

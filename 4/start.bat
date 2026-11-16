@@ -10,7 +10,7 @@ SETLOCAL
 REM 防御: 清除可能被外部注入的 SERVER__PORT 环境变量, 避免后端被拐到非 8081 端口 (前端代理固定打 8081)
 set "SERVER__PORT="
 REM 局域网 IP: 其他设备通过该 IP 访问前端 5173 / 后端 8081 (本机换网络时只需改这一行)
-SET "LAN_IP=192.168.68.17"
+SET "LAN_IP=192.168.68.43"
 SET "ROOT=%~dp0"
 SET "BACKEND=%ROOT%springBootTest"
 SET "FRONTEND=%ROOT%swallowed-star-vue"
