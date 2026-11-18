@@ -329,7 +329,10 @@ const modules = computed(() => {
     { to: '/cultivate', name: '意识修炼', desc: '七境阶梯 · 念力推演', icon: '🧠' },
     { to: '/character', name: '人物档案', desc: '罗峰与同行者的人物志', icon: '👤' },
     { to: '/treasure', name: '秘境寻宝', desc: '6 关闯关 · 1–4 人组队 · 失败退回上一关', icon: '🗝️' },
-    { to: '/battle', name: '星域擂台', desc: '回合制对战 · 4 名出战者 · 3 档难度', icon: '⚔️' }
+    { to: '/battle', name: '星域擂台', desc: '以修为对战 · 4 名出战者 · 3 档难度', icon: '⚔️' },
+    { to: '/rank', name: '战力排行榜', desc: '星海强者 · 战力指数 · 我的排名', icon: '🏆' },
+    { to: '/anime', name: '动画专区', desc: '动画分季 · 剧情脉络 · 角色与剧场版', icon: '🎬' },
+    { to: '/members', name: '成员名录', desc: '注册战士 · 身份档案 · 实时数据', icon: '👥' }
   ]
   // 仅权限=0（管理员）可见「后台管理系统」入口；权限=1 默认用户不可见也无法进入
   if (isAdmin.value) {

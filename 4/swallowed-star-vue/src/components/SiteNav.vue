@@ -91,7 +91,10 @@ const navs = [
   { key: 'cultivate', label: '意识修炼', to: '/cultivate' },
   { key: 'character', label: '人物档案', to: '/character' },
   { key: 'treasure', label: '秘境寻宝', to: '/treasure' },
-  { key: 'battle', label: '星域擂台', to: '/battle' }
+  { key: 'battle', label: '星域擂台', to: '/battle' },
+  { key: 'rank', label: '战力排行榜', to: '/rank' },
+  { key: 'anime', label: '动画专区', to: '/anime' },
+  { key: 'members', label: '成员名录', to: '/members' }
 ]
 
 const session = getSession()

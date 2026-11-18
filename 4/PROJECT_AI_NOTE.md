@@ -261,13 +261,15 @@
 
 ## 13. 星域擂台 · 回合制对战（2026-11-11）
 
-> 🔴 **2026-11-16 现状：星域擂台模块的源文件已丢失，入口已临时注释。**
-> 缺失：`src/views/BattleArena.vue`、`src/styles/battle.css`、`src/game/battle/`（`roster.js` + `engine.js`）。
-> 后果：Vite 报 `Failed to resolve import "./styles/battle.css"` / `../views/BattleArena.vue`，**整站白屏**。
-> 处理：已注释 4 处引用（`main.js` 的 css import、`router/index.js` 的 import + 路由、`Home.vue` 模块卡片、`SiteNav.vue` 导航项），
-> 均带 `TODO` 标记。**补回上述 4 个文件后逐一取消注释即可恢复**，不要只取消一半。
-> 排查口诀：页面白屏就先看 `npm run build` 或 Vite 终端的 `Failed to resolve import`，别先去怀疑 IP / 代理 / 跨域。
-> 本节 13 / 13.1 的规则、公式、文件分工仍然有效，可作为重写该模块的完整规格。
+> ✅ **2026-11-18 已修复并恢复**：星域擂台 4 个源文件曾丢失导致整站白屏，现已按本节规格重建：
+> `src/views/BattleArena.vue`、`src/styles/battle.css`、`src/game/battle/roster.js`、`src/game/battle/engine.js`。
+> 同时恢复了 4 处引用（`main.js` css import、`router/index.js` import+路由、`Home.vue` 卡片、`SiteNav.vue` 导航），导航恢复为 8 项。
+> `npm run build` 通过（71 modules）；agent-browser 端到端验证：登录→选人→登台→对战→结算发币/战绩、PVP 交接遮挡，控制台 0 错误。
+>
+> 🔴 历史坑（2026-11-16）：文件丢失时 Vite 报 `Failed to resolve import "./styles/battle.css"`，整站白屏，
+> 当时临时注释了上述 4 处引用止血。**排查口诀：白屏先看 `npm run build` 的 Failed to resolve import，别先怀疑 IP / 代理 / 跨域。**
+> 若以后再白屏先查 4 处引用与文件是否匹配，不要只取消一半注释。
+> 本节 13 / 13.1 / 13.2 的规则、公式、文件分工即重建依据，保持有效。
 
 ### 13.2 以修为对战（2026-11-16 重写）
 
@@ -289,6 +291,16 @@
 
 **坑**：伤害公式若把「剩余修为」直接当攻击力，会因「血条=修为」导致一下互秒（模拟暴露 1.1 回合）。
 正确做法是攻击力 = 修为 × 固定小比例（attackRatio），修为作为血条承担被削减，境界决定每次威力。
+
+**重建实测澄清（2026-11-18）**：
+- `ss_cultivate_power` 存的数值单位就是「万」（1 = 1万，10 = 10万，…，1000000 = 100亿念力单位，见 Cultivate 的 fmtPower）。
+  所以 `powerToHp()` 的 log10 映射常量是 **logMin=0 / logMax=6**（对应数值 1~1000000 → 血条 20~140），
+  玩家 7 个境界的血条正好是 20/40/60/80/100/120/140，即「每 ×10 血条 +20」。早期误写成 logMin=4 会导致所有对手血条都是 20。
+- 对手修为基准：`tier N → 修为数值 10^N`（tier4 = 10000，血条 100），再乘难度 pow，tierAdj 已计入 tier。
+  玩家需修炼到相近境界才有一战（境界 0 打 tier4 巨兽基本必败，符合设计）。
+- 胜率曲线比文档 13.2 记的 3.7→99.8 更陡（境界压制 ±8% 与攻击随血条增长双重放大），但「境界压制清晰、低境界难赢」的核心体验一致。
+- Vue `<script setup>` 模板里，从 `createBattle()` 解构出的 computed 要**自动解包**（写 `hpPct[0]`，不要写 `hpPct.value[0]`）；
+  `activeSide` 是函数要写 `activeSide()`。结算弹层与 PVP 遮挡必须 `Teleport to="body"`，否则 `.bt-page` 的 `rise` transform 会让 fixed 只盖内容区。
 
 路由 `/battle`（`views/BattleArena.vue`），入口同时加在顶部导航（第 8 项）和首页模块卡片里。
 
