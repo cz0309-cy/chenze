@@ -3,7 +3,6 @@
 struct Index {
   @State message: string = 'Hello World';
 
-
   build() {
     Column() {
       /*顶部固定盒子*/
@@ -21,6 +20,9 @@ struct Index {
             .borderRadius(25)//圆角
             .fontColor(Color.Red)
             .margin({right:10})//设置右外边距，与搜索图标有10的距离
+
+          Image($r('app.media.search'))
+            .width(25)
         }
       }
       .justifyContent(FlexAlign.SpaceBetween)//两边靠边平均分
@@ -70,6 +72,33 @@ struct Index {
                 Text('分类')
               }
             }
+
+            /*第二个列表项*/
+            ListItem(){
+              Column(){
+                Image('https://imgservices-1252317822.image.myqcloud.com/coco/s09082023/c120ddc7.66tydz.png')
+                  .width('18%')
+                Text('分类')
+              }
+            }
+
+            /*第二个列表项*/
+            ListItem(){
+              Column(){
+                Image('https://imgservices-1252317822.image.myqcloud.com/coco/s09082023/c120ddc7.66tydz.png')
+                  .width('18%')
+                Text('分类')
+              }
+            }
+
+            /*第二个列表项*/
+            ListItem(){
+              Column(){
+                Image('https://imgservices-1252317822.image.myqcloud.com/coco/s09082023/c120ddc7.66tydz.png')
+                  .width('18%')
+                Text('分类')
+              }
+            }
           }
           .listDirection(Axis.Horizontal)//设置list排列方向为水平，默认为垂直
           .width('100%')
@@ -78,6 +107,7 @@ struct Index {
           .margin({top:15})
           .backgroundColor(Color.White)
 
+          /*下载盒子区域*/
           Row(){
             Text('起点')
               .fontSize(21)
@@ -86,62 +116,254 @@ struct Index {
               .borderRadius(10)
               .fontColor(Color.White)
               .fontWeight(FontWeight.Bold)
+            /*文字描述区域盒子*/
             Column(){
-              Text('上起点读书App,免费看小说')
+              Text('上起点读书App, 免费看小说')
                 .fontWeight(FontWeight.Bold)
                 .fontSize(13)
-              Text('海量好书,新人免费读14天')
+              Text('海量好书，新人免费读14天')
                 .fontSize(10)
             }
             .alignItems(HorizontalAlign.Start)
 
             Text('立即下载')
               .fontSize(10)
-              .fontColor(Color.White)
-              .fontWeight(FontWeight.Bold)
               .backgroundColor(Color.Red)
               .padding(10)
               .borderRadius(20)
           }
           .justifyContent(FlexAlign.SpaceBetween)
           .borderRadius(15)
-          .padding(10)
           .margin({top:15})
-          .width("100%")
+          .padding(10)
+          .width('100%')
           .backgroundColor(Color.White)
 
-Column(){
-  Row(){
-  Row(){
-    Text('新人必读')
-      .fontSize(19)
-      .fontWeight(FontWeight.Bold)
-    Text('起点优质书单')
-      .fontSize(12)
-    Text('换一批')
-      .fontSize(12)
-  }
-  }
-  .backgroundColor(Color.White)
-  .justifyContent(FlexAlign.SpaceBetween)
-  .width("100%")
-  Row(){
+          /*新人必读区域*/
+          Column(){
+            /*标题区域*/
+            Row(){
+              /*左边标题*/
+              Row(){
+                Text('新人必读')
+                  .fontSize(19)
+                  .fontWeight(FontWeight.Bold)
+                Text('起点优质书单')
+                  .fontSize(12)
+              }
+              /*右边换一批*/
+              Row(){
+                Image($r('app.media.shuaxin'))
+                  .width(12)
+                Text('换一批')
+                  .fontColor("#ff096fe9")
+                  .fontSize(12)
+              }
+            }
+            .justifyContent(FlexAlign.SpaceBetween)
+            .width("100%")
+
+            /*小说展示区域*/
+            Row(){
+              /*小说项*/
+              Column(){
+                Image('https://bookcover.yuewen.com/qdbimg/349573/1050032171/180')
+                Text('还不起学贷的我只好兼职猎魔')
+                  .fontSize(15)
+                  .maxLines(2)
+                  .textOverflow({overflow:TextOverflow.Ellipsis})
+                Text('仙侠·幻想修仙')
+                  .fontSize(12)
+              }
+              .alignItems(HorizontalAlign.Start)
+              .width('23%')
+              Column(){
+                Image('https://bookcover.yuewen.com/qdbimg/349573/1050032171/180')
+                Text('还不起学贷的我只好兼职猎魔')
+                  .fontSize(15)
+                  .maxLines(2)
+                  .textOverflow({overflow:TextOverflow.Ellipsis})
+                Text('仙侠·幻想修仙')
+                  .fontSize(12)
+              }
+              .alignItems(HorizontalAlign.Start)
+              .width('23%')
+              Column(){
+                Image('https://bookcover.yuewen.com/qdbimg/349573/1050032171/180')
+                Text('还不起学贷的我只好兼职猎魔')
+                  .fontSize(15)
+                  .maxLines(2)
+                  .textOverflow({overflow:TextOverflow.Ellipsis})
+                Text('仙侠·幻想修仙')
+                  .fontSize(12)
+              }
+              .alignItems(HorizontalAlign.Start)
+              .width('23%')
+              Column(){
+                Image('https://bookcover.yuewen.com/qdbimg/349573/1050032171/180')
+                Text('还不起学贷的我只好兼职猎魔')
+                  .fontSize(15)
+                  .maxLines(2)
+                  .textOverflow({overflow:TextOverflow.Ellipsis})
+                Text('仙侠·幻想修仙')
+                  .fontSize(12)
+              }
+              .alignItems(HorizontalAlign.Start)
+              .width('23%')
+            }
+            .justifyContent(FlexAlign.SpaceBetween)
+            .width('100%')
+
+          }
+
+          .margin({top:15})
+          .borderRadius(15)
+          .padding(15)
+          .width("100%")
+          .backgroundColor(Color.White)
+         Row(){
+            Column(){
+              Image('https://imgservices-1252317822.image.myqcloud.com/coco/s06122023/55ceddb8.kaiv5j.png')
+                .width('70%')
+              Text('新书强推')
+                .fontSize(13)
+            }
+            .backgroundColor(Color.White)
+           .padding({bottom:10})
+           .borderRadius(12)
+           .width('23%')
+           Column(){
+             Image('https://imgservices-1252317822.image.myqcloud.com/coco/s06122023/b511874e.6j1mxh.png')
+               .width('70%')
+             Text('三江推荐')
+               .fontSize(13)
+           }
+           .backgroundColor(Color.White)
+           .padding({bottom:10})
+           .borderRadius(12)
+           .width('23%')
+           Column(){
+             Image('https://imgservices-1252317822.image.myqcloud.com/coco/s04282025/f45e7d56.51bb13.png')
+               .width('70%')
+             Text('真人有声书')
+               .fontSize(13)
+           }
+           .backgroundColor(Color.White)
+           .padding({bottom:10})
+           .borderRadius(12)
+           .width('23%')
+           Column(){
+             Image('https://imgservices-1252317822.image.myqcloud.com/coco/s08132025/1a7dc47e.ft16g6.png')
+               .width('70%')
+             Text('漫画')
+               .fontSize(13)
+           }
+           .backgroundColor(Color.White)
+           .padding({bottom:10})
+           .borderRadius(12)
+           .width('23%')
+         }
+         .justifyContent(FlexAlign.SpaceBetween)
+          .margin({top:15})
+          .width('100%')
     Column(){
-      Image('https://bookcover.yuewen.com/qdbimg/349573/1040765595/180.webp')
-      Text('夜无疆在线阅读')
-        .fontSize(15)
-        .maxLines(2)
-        .textOverflow({overflow:TextOverflow.Ellipsis})
-      Text('玄幻·东方玄幻')
-        .fontSize(12)
+            Row(){
+              Text('畅销精选')
+                .fontSize(20)
+                .fontWeight(FontWeight.Bold)
+              Text('更多>')
+                .fontSize(13)
+            }
+            .width('100%')
+      .justifyContent(FlexAlign.SpaceBetween)
+      Row(){
+        Image('https://bookcover.yuewen.com/qdbimg/349573/1050151672/180.webp')
+          .width('27%')
+        Column(){
+          Text('神秘复苏：鬼催更')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+          Text('这个作者日更三万，因为背后有只鬼在催。\n' +
+            '但他丝毫不慌……\n' +
+            '其实这都是骗鬼的。')
+            .maxLines(1)
+            .textOverflow({overflow:TextOverflow.Ellipsis})
+          Text('悬疑灵异 · 50万字')
+
+        }
+        .alignItems(HorizontalAlign.Start)
+        .width('73%')
+
+      }
+      .width('100%')
+      Row(){
+        Image('https://bookcover.yuewen.com/qdbimg/349573/1050151672/180.webp')
+          .width('27%')
+        Column(){
+          Text('神秘复苏：鬼催更')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+          Text('这个作者日更三万，因为背后有只鬼在催。\n' +
+            '但他丝毫不慌……\n' +
+            '其实这都是骗鬼的。')
+            .maxLines(1)
+            .textOverflow({overflow:TextOverflow.Ellipsis})
+          Text('悬疑灵异 · 50万字')
+
+        }
+        .alignItems(HorizontalAlign.Start)
+        .width('73%')
+
+      }
+      .width('100%')
+      Row(){
+        Image('https://bookcover.yuewen.com/qdbimg/349573/1050151672/180.webp')
+          .width('27%')
+        Column(){
+          Text('神秘复苏：鬼催更')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+          Text('这个作者日更三万，因为背后有只鬼在催。\n' +
+            '但他丝毫不慌……\n' +
+            '其实这都是骗鬼的。')
+            .maxLines(1)
+            .textOverflow({overflow:TextOverflow.Ellipsis})
+          Text('悬疑灵异 · 50万字')
+
+        }
+        .alignItems(HorizontalAlign.Start)
+        .width('73%')
+
+      }
+      .width('100%')
+      Row(){
+        Image('https://bookcover.yuewen.com/qdbimg/349573/1050151672/180.webp')
+          .width('27%')
+        Column(){
+          Text('神秘复苏：鬼催更')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+          Text('这个作者日更三万，因为背后有只鬼在催。\n' +
+            '但他丝毫不慌……\n' +
+            '其实这都是骗鬼的。')
+            .maxLines(1)
+            .textOverflow({overflow:TextOverflow.Ellipsis})
+          Text('悬疑灵异 · 50万字')
+
+        }
+        .alignItems(HorizontalAlign.Start)
+        .width('73%')
+
+      }
+      .width('100%')
     }
-    .alignItems(HorizontalAlign.Start)
-    .width('23%')
-  }
-  .justifyContent(FlexAlign.SpaceBetween)
-  .width('100%')
-  .backgroundColor(Color.White)
-}
+          .padding(15)
+          .backgroundColor(Color.White)
+          .borderRadius(15)
+          .margin({top:15})
+          .width('100%')
+
+
         }
       }
       .width('100%')
@@ -151,7 +373,7 @@ Column(){
     }
     .padding({left:15,right:15})
     .height('100%')
-    .height('100%')
     .width('100%')
+    .background(Color.Gray)
   }
 }
