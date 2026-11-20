@@ -1,4 +1,5 @@
 <template>
+  <StarfieldScene />
   <main class="panel">
     <header class="brand">
       <div class="sigil">
@@ -74,6 +75,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import StarfieldScene from '../components/StarfieldScene.vue'
 import Captcha from '../components/Captcha.vue'
 import { register } from '../composables/useAuth.js'
 import { useToast } from '../composables/useToast.js'

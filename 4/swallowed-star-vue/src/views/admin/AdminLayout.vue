@@ -41,6 +41,24 @@
       </header>
 
       <main class="admin-content">
+        <!-- 数据概览：各模块实时记录数，点击直达对应模块 -->
+        <section class="overview">
+          <button
+            v-for="m in ADMIN_MODULES"
+            :key="'ov-' + m.key"
+            class="ov-card"
+            :class="{ active: current.key === m.key }"
+            @click="$router.push('/admin/' + m.key)"
+          >
+            <span class="ov-icon">{{ m.icon }}</span>
+            <span class="ov-body">
+              <b>{{ m.title }}</b>
+              <em>{{ counts[m.key] === null ? '—' : counts[m.key] + ' 条记录' }}</em>
+            </span>
+            <span class="ov-arrow">›</span>
+          </button>
+        </section>
+
         <p class="mod-desc">{{ current.desc }}</p>
         <AdminCrud :key="current.key" :mod="current" />
       </main>
@@ -52,7 +70,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ADMIN_MODULES } from '../../admin/modules.js'
-import { adminLogout, adminMe, clearAdminToken } from '../../api/admin.js'
+import { adminLogout, adminMe, clearAdminToken, fetchAdminPage } from '../../api/admin.js'
 import AdminCrud from './AdminCrud.vue'
 
 const route = useRoute()
@@ -68,6 +86,21 @@ const current = computed(
 
 const adminName = ref('管理员')
 const avatarChar = computed(() => (adminName.value || '管')[0])
+
+// 各模块记录数（复用现有列表接口 size=1 拿 total，无需新增后端接口）
+const counts = ref(Object.fromEntries(ADMIN_MODULES.map((m) => [m.key, null])))
+async function loadCounts() {
+  await Promise.all(
+    ADMIN_MODULES.map(async (m) => {
+      try {
+        const res = await fetchAdminPage(m.key, { page: 1, size: 1 })
+        counts.value[m.key] = res.data.total || 0
+      } catch {
+        counts.value[m.key] = '—'
+      }
+    })
+  )
+}
 
 async function loadMe() {
   try {
@@ -96,6 +129,7 @@ function onUnauthorized() {
 let authTimer = null
 onMounted(() => {
   loadMe()
+  loadCounts()
   // 每 5 分钟校验一次会话有效性
   authTimer = setInterval(loadMe, 5 * 60 * 1000)
   window.addEventListener('admin-unauthorized', onUnauthorized)
@@ -269,6 +303,51 @@ onBeforeUnmount(() => {
   color: var(--muted);
   letter-spacing: 0.04em;
 }
+
+/* 数据概览卡片 */
+.overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.ov-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--panel-line);
+  border-radius: 14px;
+  background: rgba(10, 16, 38, 0.55);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, transform 0.2s, background 0.2s;
+}
+.ov-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(102, 224, 255, 0.5);
+}
+.ov-card.active {
+  border-color: rgba(255, 212, 121, 0.55);
+  background: rgba(255, 212, 121, 0.08);
+}
+.ov-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(102, 224, 255, 0.1);
+  font-size: 19px;
+}
+.ov-card.active .ov-icon { background: rgba(255, 212, 121, 0.14); }
+.ov-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ov-body b { font-size: 13px; font-weight: 500; }
+.ov-body em { font-style: normal; font-size: 11.5px; color: var(--muted); }
+.ov-arrow { margin-left: auto; color: var(--muted); font-size: 20px; }
+.ov-card:hover .ov-arrow { color: var(--cyan); }
 
 @media (max-width: 860px) {
   .admin-side {

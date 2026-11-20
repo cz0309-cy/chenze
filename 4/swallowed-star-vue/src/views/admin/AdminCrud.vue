@@ -24,6 +24,7 @@
         <button class="btn ghost" @click="reload">搜索</button>
       </div>
       <span class="spacer"></span>
+      <button class="btn ghost" :disabled="!rows.length" @click="exportCsv">⭳ 导出CSV</button>
       <button class="btn ghost" @click="reload">刷新</button>
       <button class="btn primary" @click="openCreate">+ 新增{{ group.label }}</button>
     </div>
@@ -53,9 +54,29 @@
     </div>
 
     <div class="pager" v-if="total > 0">
+      <label class="page-size">
+        每页
+        <select v-model.number="size" @change="onSizeChange">
+          <option :value="10">10</option>
+          <option :value="20">20</option>
+          <option :value="50">50</option>
+        </select>
+        条
+      </label>
       <span class="pager-info">共 {{ total }} 条 · 第 {{ page }}/{{ pages }} 页</span>
+      <button class="btn mini" :disabled="page <= 1" @click="goPage(1)">首页</button>
       <button class="btn mini" :disabled="page <= 1" @click="goPage(page - 1)">上一页</button>
+      <span class="page-nums">
+        <button
+          v-for="p in pageList"
+          :key="p"
+          class="btn mini page-num"
+          :class="{ cur: p === page }"
+          @click="goPage(p)"
+        >{{ p }}</button>
+      </span>
       <button class="btn mini" :disabled="page >= pages" @click="goPage(page + 1)">下一页</button>
+      <button class="btn mini" :disabled="page >= pages" @click="goPage(pages)">末页</button>
     </div>
 
     <!-- 新增 / 编辑弹窗 -->
@@ -160,11 +181,28 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- 删除确认弹窗 -->
+    <Teleport to="body">
+      <div v-if="confirmDialog" class="modal-mask confirm-mask" @click.self="confirmDialog = null">
+        <div class="confirm-box">
+          <div class="confirm-icon">⚠</div>
+          <h3>确认删除</h3>
+          <p>确定删除「{{ confirmDialog.label }}」？<br />此操作不可恢复。</p>
+          <div class="confirm-actions">
+            <button class="btn ghost" @click="confirmDialog = null">取消</button>
+            <button class="btn danger-solid" :disabled="confirmDialog.deleting" @click="doRemove">
+              {{ confirmDialog.deleting ? '删除中…' : '确认删除' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useToast } from '../../composables/useToast.js'
 import {
   createAdminItem,
@@ -186,10 +224,18 @@ const page = ref(1)
 const size = ref(10)
 const total = ref(0)
 const pages = computed(() => Math.max(1, Math.ceil(total.value / size.value)))
+// 页码窗口：当前页附近最多 5 个，始终含首尾
+const pageList = computed(() => {
+  const p = page.value
+  const n = pages.value
+  const set = new Set([1, n, p - 1, p, p + 1])
+  return [...set].filter((x) => x >= 1 && x <= n).sort((a, b) => a - b)
+})
 const rows = ref([])
 const loading = ref(false)
 
 const dialog = ref(null) // { mode, id, error, saving }
+const confirmDialog = ref(null) // { id, label, deleting }
 const form = reactive({})
 
 function switchGroup(g) {
@@ -200,7 +246,17 @@ function switchGroup(g) {
 }
 
 // 首次进入模块即加载列表
-onMounted(() => reload())
+onMounted(() => {
+  reload()
+  window.addEventListener('keydown', onKeydown)
+})
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+
+function onKeydown(e) {
+  if (e.key !== 'Escape') return
+  if (confirmDialog.value) confirmDialog.value = null
+  else if (dialog.value && !dialog.value.saving) closeDialog()
+}
 
 async function reload() {
   loading.value = true
@@ -223,7 +279,14 @@ async function reload() {
 }
 
 function goPage(p) {
-  page.value = Math.min(Math.max(1, p), pages.value)
+  const target = Math.min(Math.max(1, p), pages.value)
+  if (target === page.value) return
+  page.value = target
+  reload()
+}
+
+function onSizeChange() {
+  page.value = 1
   reload()
 }
 
@@ -385,16 +448,53 @@ async function save() {
   }
 }
 
-async function remove(row) {
+function remove(row) {
   const label = row.name || row.code || ('#' + row.id)
-  if (!window.confirm(`确定删除「${label}」？此操作不可恢复。`)) return
+  confirmDialog.value = { id: row.id, label, deleting: false }
+}
+
+async function doRemove() {
+  if (!confirmDialog.value || confirmDialog.value.deleting) return
+  confirmDialog.value.deleting = true
   try {
-    await deleteAdminItem(group.value.key, row.id)
+    await deleteAdminItem(group.value.key, confirmDialog.value.id)
     show('已删除', 'ok')
+    confirmDialog.value = null
     reload()
   } catch (e) {
     show(e.message || '删除失败', 'err')
+    confirmDialog.value.deleting = false
   }
+}
+
+/* ---------------- 导出 CSV ---------------- */
+
+function csvCell(v) {
+  if (v === null || v === undefined) return ''
+  let s
+  if (Array.isArray(v)) s = v.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join(' / ')
+  else if (typeof v === 'object') s = JSON.stringify(v)
+  else s = String(v)
+  // 转义：引号翻倍，含逗号/引号/换行则整体加引号
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s
+}
+
+function exportCsv() {
+  const cols = group.value.columns
+  const header = cols.map((c) => csvCell(c.label)).join(',')
+  const lines = rows.value.map((row) => cols.map((c) => csvCell(row[c.key])).join(','))
+  // BOM 让 Excel 正确识别 UTF-8 中文
+  const csv = '\uFEFF' + [header, ...lines].join('\r\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${group.value.label}_${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+  show(`已导出 ${rows.value.length} 条记录`, 'ok')
 }
 
 defineExpose({ reload })
@@ -480,6 +580,12 @@ defineExpose({ reload })
 .btn.danger:hover {
   border-color: rgba(255, 107, 129, 0.6);
 }
+.btn.danger-solid {
+  border-color: var(--danger);
+  background: linear-gradient(135deg, rgba(255, 107, 129, 0.28), rgba(255, 107, 129, 0.12));
+  color: #ffd0d8;
+}
+.btn.danger-solid:hover { box-shadow: 0 0 14px rgba(255, 107, 129, 0.35); }
 .btn.mini {
   padding: 4px 10px;
   font-size: 12px;
@@ -543,11 +649,36 @@ tbody tr:last-child td {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .pager-info {
   color: var(--muted);
   font-size: 12px;
+  margin-left: 6px;
+}
+.page-size {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  margin-right: auto;
+}
+.page-size select {
+  padding: 4px 6px;
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  background: rgba(7, 11, 26, 0.9);
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+}
+.page-nums { display: inline-flex; gap: 4px; }
+.page-num.cur {
+  border-color: rgba(255, 212, 121, 0.55);
+  color: var(--gold);
+  background: rgba(255, 212, 121, 0.12);
 }
 
 /* 弹窗 */
@@ -717,6 +848,37 @@ tbody tr:last-child td {
 .list-empty {
   font-size: 11.5px;
   color: var(--muted);
+}
+
+/* 删除确认弹窗 */
+.confirm-box {
+  width: min(400px, 90vw);
+  padding: 26px 24px 22px;
+  border: 1px solid rgba(255, 107, 129, 0.35);
+  border-radius: 18px;
+  background: linear-gradient(160deg, #140c22, #0a0a1c);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.confirm-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: rgba(255, 107, 129, 0.12);
+  border: 1px solid rgba(255, 107, 129, 0.4);
+  color: var(--danger);
+  font-size: 24px;
+}
+.confirm-box h3 { font-size: 16px; color: var(--text); margin-bottom: 10px; }
+.confirm-box p { font-size: 13px; color: var(--muted); line-height: 1.8; }
+.confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 22px;
 }
 @media (max-width: 760px) {
   .list-fields {
