@@ -16,7 +16,7 @@ import UserDirectory from '../views/UserDirectory.vue'
 import AdminLogin from '../views/admin/AdminLogin.vue'
 import AdminLayout from '../views/admin/AdminLayout.vue'
 import AdminCrud from '../views/admin/AdminCrud.vue'
-import { ADMIN_MODULES } from '../admin/modules.js'
+import { ADMIN_MODULES, ADMIN_VIEWS } from '../admin/modules.js'
 import { getAdminToken } from '../api/admin.js'
 
 // 后台各模块页面：/admin/civs、/admin/goods、/admin/realms、/admin/characters
@@ -26,6 +26,21 @@ const adminRoutes = ADMIN_MODULES.map((m) => ({
   component: AdminCrud,
   props: { mod: m },
   meta: { adminAuth: true }
+}))
+
+// 后台「功能中心」：复用前台已有的完整交互页面，直接渲染组件（非 CRUD 表格）
+const ADMIN_VIEW_COMPONENTS = {
+  treasure: StarGame,
+  battle: BattleArena,
+  rank: PowerRank,
+  anime: AnimeZone,
+  members: UserDirectory
+}
+const adminViewRoutes = ADMIN_VIEWS.map((v) => ({
+  path: v.key,
+  name: 'admin-view-' + v.key,
+  component: ADMIN_VIEW_COMPONENTS[v.key],
+  meta: { adminAuth: true, adminView: true }
 }))
 
 const routes = [
@@ -53,7 +68,11 @@ const routes = [
     path: '/admin',
     component: AdminLayout,
     meta: { adminAuth: true },
-    children: [{ path: '', redirect: '/admin/' + ADMIN_MODULES[0].key }, ...adminRoutes]
+    children: [
+      { path: '', redirect: '/admin/' + ADMIN_MODULES[0].key },
+      ...adminRoutes,
+      ...adminViewRoutes
+    ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/home' }
 ]

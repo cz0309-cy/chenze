@@ -190,3 +190,21 @@ export const ADMIN_MODULES = [
     ]
   }
 ]
+
+/**
+ * 后台「功能中心」：接入前台已有的 5 个完整交互页面。
+ * 与 ADMIN_MODULES（数据 CRUD）不同，这些是 type:'view'，内容区直接渲染对应页面组件，
+ * 不用 AdminCrud 表格。key 与前台路由一致（treasure/battle/rank/anime/members）。
+ */
+export const ADMIN_VIEWS = [
+  { key: 'treasure', title: '秘境寻宝', icon: '🗝️', subtitle: 'TREASURE QUEST',
+    desc: '6 关闯关 · 1–4 人组队 · 失败退回上一关。此处与前台「秘境寻宝」为同一功能。', type: 'view' },
+  { key: 'battle', title: '星域擂台', icon: '⚔️', subtitle: 'BATTLE ARENA',
+    desc: '以修为对战 · 4 名出战者 · 3 档难度，含人机与双人对战。', type: 'view' },
+  { key: 'rank', title: '战力排行榜', icon: '🏆', subtitle: 'POWER RANKING',
+    desc: '星海强者战力指数排行，含「我的排名」实时折算。', type: 'view' },
+  { key: 'anime', title: '动画专区', icon: '🎬', subtitle: 'ANIME ZONE',
+    desc: '分季剧情脉络、角色、剧场版，以及本地视频与 B 站在线放映。', type: 'view' },
+  { key: 'members', title: '成员名录', icon: '👥', subtitle: 'MEMBER DIRECTORY',
+    desc: '注册战士身份档案与实时数据。', type: 'view' }
+]

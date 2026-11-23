@@ -12,6 +12,7 @@
       </div>
 
       <nav class="side-menu">
+        <div class="side-group">数据管理</div>
         <router-link
           v-for="m in ADMIN_MODULES"
           :key="m.key"
@@ -21,6 +22,17 @@
         >
           <span class="side-icon">{{ m.icon }}</span>
           <span class="side-label">{{ m.title }}</span>
+        </router-link>
+        <div class="side-group">功能中心</div>
+        <router-link
+          v-for="v in ADMIN_VIEWS"
+          :key="v.key"
+          :to="`/admin/${v.key}`"
+          class="side-item"
+          :class="{ active: current.key === v.key }"
+        >
+          <span class="side-icon">{{ v.icon }}</span>
+          <span class="side-label">{{ v.title }}</span>
         </router-link>
       </nav>
 
@@ -40,9 +52,9 @@
         </div>
       </header>
 
-      <main class="admin-content">
-        <!-- 数据概览：各模块实时记录数，点击直达对应模块 -->
-        <section class="overview">
+      <main class="admin-content" :class="{ 'is-view': isView }">
+        <!-- 数据概览：仅数据管理模块显示实时记录数 -->
+        <section class="overview" v-if="!isView">
           <button
             v-for="m in ADMIN_MODULES"
             :key="'ov-' + m.key"
@@ -60,7 +72,14 @@
         </section>
 
         <p class="mod-desc">{{ current.desc }}</p>
-        <AdminCrud :key="current.key" :mod="current" />
+
+        <!-- 数据管理：通用 CRUD 表格 -->
+        <AdminCrud v-if="!isView" :key="current.key" :mod="current" />
+
+        <!-- 功能中心：嵌入前台完整交互页面 -->
+        <div v-else class="embed-view">
+          <component :is="current.component" :key="current.key" />
+        </div>
       </main>
     </div>
   </div>
@@ -69,20 +88,37 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ADMIN_MODULES } from '../../admin/modules.js'
+import { ADMIN_MODULES, ADMIN_VIEWS } from '../../admin/modules.js'
 import { adminLogout, adminMe, clearAdminToken, fetchAdminPage } from '../../api/admin.js'
 import AdminCrud from './AdminCrud.vue'
+import StarGame from '../StarGame.vue'
+import BattleArena from '../BattleArena.vue'
+import PowerRank from '../PowerRank.vue'
+import AnimeZone from '../AnimeZone.vue'
+import UserDirectory from '../UserDirectory.vue'
 
 const route = useRoute()
 const router = useRouter()
 
-// 按当前路由匹配模块（保证直接访问 /admin/goods 时内容与侧边栏一致）
-const current = computed(
-  () =>
-    ADMIN_MODULES.find((m) => route.path === `/admin/${m.key}`) ||
-    ADMIN_MODULES.find((m) => route.path.startsWith(`/admin/${m.key}`)) ||
+const VIEW_COMPONENTS = {
+  treasure: StarGame,
+  battle: BattleArena,
+  rank: PowerRank,
+  anime: AnimeZone,
+  members: UserDirectory
+}
+
+// 数据模块 + 功能页统一匹配（保证直接访问 /admin/xxx 时内容与侧边栏一致）
+const ALL_MODULES = [...ADMIN_MODULES, ...ADMIN_VIEWS]
+const current = computed(() => {
+  const found =
+    ALL_MODULES.find((m) => route.path === `/admin/${m.key}`) ||
+    ALL_MODULES.find((m) => route.path.startsWith(`/admin/${m.key}`)) ||
     ADMIN_MODULES[0]
-)
+  // 功能页挂上对应组件供内容区动态渲染
+  return found.type === 'view' ? { ...found, component: VIEW_COMPONENTS[found.key] } : found
+})
+const isView = computed(() => current.value.type === 'view')
 
 const adminName = ref('管理员')
 const avatarChar = computed(() => (adminName.value || '管')[0])
@@ -183,6 +219,19 @@ onBeforeUnmount(() => {
   gap: 4px;
   margin-top: 16px;
   flex: 1;
+  overflow-y: auto;
+}
+.side-group {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  padding: 10px 14px 4px;
+  opacity: 0.7;
+}
+.side-group:not(:first-child) {
+  margin-top: 8px;
+  border-top: 1px solid var(--panel-line);
+  padding-top: 14px;
 }
 .side-item {
   display: flex;
@@ -297,6 +346,23 @@ onBeforeUnmount(() => {
   margin-left: auto;
   margin-right: auto;
 }
+
+/* 功能中心：把前台整页组件融入后台内容区，去掉全屏定位与自带导航 */
+.admin-content.is-view { padding-top: 18px; }
+.embed-view { width: 100%; }
+/* 覆盖被嵌入页面的根 .page-shell（fixed 全屏 → 后台内正常文档流） */
+.embed-view :deep(.page-shell) {
+  position: static;
+  inset: auto;
+  z-index: auto;
+  overflow: visible;
+  min-height: 0;
+  padding: 0;
+}
+/* 隐藏被嵌入页面自带的顶部前台导航 */
+.embed-view :deep(.topnav) { display: none !important; }
+/* 弹层 Teleport 到 body，不受 scoped 影响；这里保证内容区可滚动 */
+.admin-content.is-view { overflow-y: auto; }
 .mod-desc {
   margin-bottom: 16px;
   font-size: 12.5px;
