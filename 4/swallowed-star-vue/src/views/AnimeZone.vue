@@ -83,6 +83,65 @@
         </div>
       </section>
 
+      <!-- B站在线放映：官方嵌入播放器，不下载不上传 -->
+      <section class="card az-bili">
+        <div class="card-head">
+          <h3>📺 B站在线放映</h3>
+          <span>由哔哩哔哩官方播放器提供，视频不落地</span>
+        </div>
+        <div class="az-bili-body">
+          <div class="az-bili-bar">
+            <input
+              v-model="biliInput"
+              type="text"
+              class="az-bili-input"
+              placeholder="粘贴 B 站视频链接或 BV 号，例如 BV1qV4y1P7kK"
+              @keyup.enter="playBili"
+            />
+            <button type="button" class="az-bili-go" @click="playBili">放映</button>
+          </div>
+          <p v-if="biliHint" class="az-bili-hint">{{ biliHint }}</p>
+
+          <div class="az-bili-stage">
+            <iframe
+              v-if="biliBvid"
+              :key="biliBvid"
+              :src="`https://player.bilibili.com/player.html?bvid=${biliBvid}&page=1&high_quality=1&danmaku=0`"
+              class="az-bili-frame"
+              scrolling="no"
+              border="0"
+              frameborder="no"
+              framespacing="0"
+              allowfullscreen="true"
+              referrerpolicy="no-referrer"
+            ></iframe>
+            <div v-else class="az-bili-empty">
+              <div class="az-bili-glyph">BV</div>
+              <p>粘贴链接，或点选下方视频开始放映</p>
+              <span>播放由哔哩哔哩官方播放器提供</span>
+            </div>
+          </div>
+
+          <div v-if="biliPresets.length" class="az-bili-list">
+            <div class="az-bili-list-head"><h4>《吞噬星空》相关视频</h4><span>点选即可放映</span></div>
+            <div class="az-bili-grid">
+              <button
+                v-for="v in biliPresets"
+                :key="v.bvid"
+                type="button"
+                class="az-bili-item"
+                :class="{ on: biliBvid === v.bvid }"
+                :title="v.title"
+                @click="playPreset(v)"
+              >
+                <span class="az-bili-play">▶</span>
+                <span class="az-bili-title">{{ v.title }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- 分季切换 -->
       <div class="az-seasons">
         <button
@@ -231,6 +290,44 @@ const seasons = [
 const current = ref(0)
 const season = computed(() => seasons[current.value] || null)
 
+/* ---------- B站在线放映 ---------- */
+const biliInput = ref('')
+const biliBvid = ref('')
+const biliHint = ref('')
+// 来自 B 站搜索结果的《吞噬星空》相关视频（官方/UP主发布，版权归原作者）
+const biliPresets = [
+  { bvid: 'BV1qV4y1P7kK', title: '614集 · 罗峰突破到宇宙之主、蜕变' },
+  { bvid: 'BV1QY411Y7mN', title: '1.5亿氢弹 VS 金角巨兽' },
+  { bvid: 'BV1ea4y1z77t', title: '罗峰收小弟，成为灯塔为地球开路' },
+  { bvid: 'BV1N94y1h7ok', title: '燃爆全场主题曲 MV' },
+  { bvid: 'BV1W24y1i7iy', title: '罗峰×中国青年说·航天新人' }
+]
+
+function parseBvid(input) {
+  const s = String(input || '').trim()
+  // 直接是 BV 号
+  let m = s.match(/BV[0-9A-Za-z]{10}/)
+  if (m) return m[0]
+  // B站短链 b23.tv 由用户粘贴完整链接时，浏览器已能解析出 BV，这里只处理标准链接
+  return ''
+}
+
+function playBili() {
+  const bv = parseBvid(biliInput.value)
+  if (!bv) {
+    biliHint.value = '没识别出 BV 号。请粘贴 B 站视频链接（含 BV 号）或直接输入 BV 号，例如 BV1qV4y1P7kK。'
+    return
+  }
+  biliHint.value = ''
+  biliBvid.value = bv
+}
+
+function playPreset(v) {
+  biliHint.value = ''
+  biliInput.value = ''
+  biliBvid.value = v.bvid
+}
+
 /* ---------- 本地视频播放 ---------- */
 const fileInput = ref(null)
 const videoEl = ref(null)
@@ -368,6 +465,60 @@ onBeforeUnmount(clearAll)
   cursor: pointer; padding: 0 2px;
 }
 .az-pl-del:hover { color: #ff6b8a; }
+
+/* ---------- B站在线放映 ---------- */
+.az-bili { max-width: 1000px; margin: 0 auto 22px; padding: 0; overflow: hidden; }
+.az-bili .card-head { padding: 16px 22px; margin: 0; border-bottom: 1px solid var(--panel-line); }
+.az-bili .card-head h3 { font-size: 16px; letter-spacing: 1px; }
+.az-bili .card-head span { font-size: 11px; color: var(--muted); }
+.az-bili-body { padding: 18px 22px 22px; }
+.az-bili-bar { display: flex; gap: 10px; }
+.az-bili-input {
+  flex: 1; min-width: 0; padding: 11px 14px; font-size: 13px;
+  border-radius: 10px; border: 1px solid var(--panel-line);
+  background: rgba(255,255,255,.03); color: var(--text); outline: none;
+}
+.az-bili-input:focus { border-color: rgba(102,224,255,.5); }
+.az-bili-input::placeholder { color: var(--muted); }
+.az-bili-go {
+  cursor: pointer; padding: 11px 22px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  color: #04141a; border: 1px solid var(--cyan);
+  background: linear-gradient(180deg, #a8f0ff, var(--cyan)); transition: 0.2s;
+}
+.az-bili-go:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.az-bili-hint { margin: 10px 0 0; font-size: 12px; color: #ff8a5c; }
+.az-bili-stage {
+  position: relative; width: 100%; aspect-ratio: 16 / 9; margin-top: 16px;
+  border-radius: 12px; overflow: hidden; background: #05070e;
+  border: 1px solid var(--panel-line);
+}
+.az-bili-frame { width: 100%; height: 100%; border: 0; display: block; background: #05070e; }
+.az-bili-empty {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px; text-align: center;
+  background: radial-gradient(circle at 50% 45%, rgba(102,224,255,.06), transparent 60%);
+}
+.az-bili-glyph {
+  width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%;
+  font-size: 20px; font-weight: 700; letter-spacing: 1px; color: var(--cyan);
+  border: 1px solid rgba(102,224,255,.35); background: rgba(102,224,255,.08);
+}
+.az-bili-empty p { margin: 4px 0 0; font-size: 15px; color: var(--text); }
+.az-bili-empty span { font-size: 12px; color: var(--muted); }
+.az-bili-list { margin-top: 18px; border-top: 1px solid var(--panel-line); padding-top: 14px; }
+.az-bili-list-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.az-bili-list-head h4 { font-size: 13px; letter-spacing: 1px; }
+.az-bili-list-head span { font-size: 11px; color: var(--muted); }
+.az-bili-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.az-bili-item {
+  display: flex; align-items: center; gap: 9px; text-align: left; cursor: pointer;
+  padding: 10px 12px; border-radius: 8px; color: var(--text);
+  border: 1px solid var(--panel-line); background: rgba(255,255,255,.02); transition: 0.18s;
+}
+.az-bili-item:hover { border-color: rgba(102,224,255,.4); background: rgba(102,224,255,.06); }
+.az-bili-item.on { border-color: var(--cyan); background: rgba(102,224,255,.1); }
+.az-bili-play { font-size: 11px; color: var(--cyan); }
+.az-bili-title { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---------- 原有分季资料 ---------- */
 .az-seasons {
