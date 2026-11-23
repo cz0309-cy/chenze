@@ -83,7 +83,16 @@ import { getSession, logout } from '../composables/useAuth.js'
 const route = useRoute()
 const router = useRouter()
 
-const navs = [
+import { getFeatureConfig } from '../api/config.js'
+
+// 功能开关：后台可隐藏指定功能页的前台导航入口
+const featureSwitches = ref(null)
+onMounted(async () => {
+  const cfg = await getFeatureConfig()
+  if (cfg?.switches) featureSwitches.value = cfg.switches
+})
+
+const allNavs = [
   { key: 'home', label: '星域首页', to: '/home' },
   { key: 'explore', label: '星海探索', to: '/explore' },
   { key: 'codex', label: '文明图鉴', to: '/codex' },
@@ -96,6 +105,12 @@ const navs = [
   { key: 'anime', label: '动画专区', to: '/anime' },
   { key: 'members', label: '成员名录', to: '/members' }
 ]
+const FEATURE_KEYS = ['treasure', 'battle', 'rank', 'anime', 'members']
+const navs = computed(() => allNavs.filter((n) => {
+  if (!FEATURE_KEYS.includes(n.key)) return true
+  const sw = featureSwitches.value?.[n.key]
+  return sw ? sw.showInNav !== false : true
+}))
 
 const session = getSession()
 const nickname = ref((session && (session.nickname || session.username)) || '星际战士')

@@ -61,14 +61,11 @@ import { getSession } from '../composables/useAuth.js'
 const keyword = ref('')
 const source = ref('local')
 
-// 本地演示名录（后端未提供 /auth/users 时的兜底）
-const demoMembers = ref([
-  { id: 1001, username: 'chenze', nickname: '星河守护者', permission: 0, online: true, joinedAt: '2026-10-15' },
-  { id: 1002, username: 'luofeng_fan', nickname: '罗峰的刀', permission: 1, online: true, joinedAt: '2026-11-02' },
-  { id: 1003, username: 'star_walker', nickname: '星海旅人', permission: 1, online: false, joinedAt: '2026-11-08' },
-  { id: 1004, username: ' babata_fan', nickname: '巴巴塔的铁粉', permission: 1, online: true, joinedAt: '2026-11-14' },
-  { id: 1005, username: 'killing_field', nickname: '杀戮场主', permission: 1, online: false, joinedAt: '2026-11-19' }
-])
+// 本地演示名录（后端未提供 /auth/users 时的兜底；可由后台「功能配置」编辑）
+import { getFeatureConfig } from '../api/config.js'
+import { DEFAULT_FEATURES } from '../config/defaults.js'
+
+const demoMembers = ref(DEFAULT_FEATURES.content.members.map(m => ({ ...m })))
 
 const session = getSession()
 const meUsername = (session && session.username) || ''
@@ -93,6 +90,13 @@ const onlineCount = computed(() => list.value.filter(m => m.online).length)
 const adminCount = computed(() => list.value.filter(m => m.permission === 0).length)
 
 onMounted(async () => {
+  // 先读后台功能配置，覆盖演示名录（配置优先于内置默认）
+  try {
+    const cfg = await getFeatureConfig()
+    if (Array.isArray(cfg?.content?.members)) {
+      demoMembers.value = cfg.content.members.map(m => ({ ...m }))
+    }
+  } catch { /* 忽略配置读取失败 */ }
   // 后端目前没有 /auth/users，尝试调用，失败则保留本地数据（页面不报错）
   try {
     const res = await membersApi()

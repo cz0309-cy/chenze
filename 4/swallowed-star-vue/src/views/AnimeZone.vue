@@ -225,10 +225,12 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onBeforeUnmount } from 'vue'
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
+import { getFeatureConfig } from '../api/config.js'
+import { DEFAULT_FEATURES, deepMerge } from '../config/defaults.js'
 
-const seasons = [
+const seasons = ref([
   {
     key: 's1', title: '地球篇', en: 'THE EARTH ARC', year: '地球 · 大涅槃纪',
     glyph: '地', episodes: 26, arc: '武者考核 → 陨墨星', realm: '学徒 → 行星级',
@@ -285,23 +287,30 @@ const seasons = [
     ],
     movies: []
   }
-]
+])
 
 const current = ref(0)
-const season = computed(() => seasons[current.value] || null)
+const season = computed(() => seasons.value[current.value] || null)
 
 /* ---------- B站在线放映 ---------- */
 const biliInput = ref('')
 const biliBvid = ref('')
 const biliHint = ref('')
 // 来自 B 站搜索结果的《吞噬星空》相关视频（官方/UP主发布，版权归原作者）
-const biliPresets = [
-  { bvid: 'BV1qV4y1P7kK', title: '614集 · 罗峰突破到宇宙之主、蜕变' },
-  { bvid: 'BV1QY411Y7mN', title: '1.5亿氢弹 VS 金角巨兽' },
-  { bvid: 'BV1ea4y1z77t', title: '罗峰收小弟，成为灯塔为地球开路' },
-  { bvid: 'BV1N94y1h7ok', title: '燃爆全场主题曲 MV' },
-  { bvid: 'BV1W24y1i7iy', title: '罗峰×中国青年说·航天新人' }
-]
+const biliPresets = ref(DEFAULT_FEATURES.content.animeVideos.map(v => ({ ...v })))
+
+onMounted(async () => {
+  const cfg = await getFeatureConfig()
+  if (!cfg) return
+  const merged = deepMerge(DEFAULT_FEATURES, cfg)
+  if (Array.isArray(merged?.content?.animeVideos)) {
+    biliPresets.value = merged.content.animeVideos
+  }
+  if (Array.isArray(merged?.content?.animeSeasons) && merged.content.animeSeasons.length) {
+    seasons.value = merged.content.animeSeasons
+    if (current.value >= seasons.value.length) current.value = 0
+  }
+})
 
 function parseBvid(input) {
   const s = String(input || '').trim()

@@ -204,3 +204,14 @@ CREATE TABLE IF NOT EXISTS character_profile (
   PRIMARY KEY (id),
   UNIQUE KEY uk_code (code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='人物档案表';
+
+-- ============================================================
+-- 功能中心配置表（2026-11-23 新增）：后台可编辑的数值参数/内容数据/功能开关
+-- 单个 key 对应一份 JSON 配置，前端功能页启动时读取并覆盖默认值。
+-- ============================================================
+CREATE TABLE IF NOT EXISTS feature_config (
+  cfg_key    VARCHAR(64)  NOT NULL                COMMENT '配置键（如 features）',
+  cfg_value  LONGTEXT     NOT NULL                COMMENT '配置内容（JSON）',
+  updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (cfg_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='功能中心配置表';

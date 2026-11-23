@@ -34,6 +34,10 @@
           <span class="side-icon">{{ v.icon }}</span>
           <span class="side-label">{{ v.title }}</span>
         </router-link>
+        <router-link to="/admin/config" class="side-item" :class="{ active: current.key === 'config' }">
+          <span class="side-icon">⚙️</span>
+          <span class="side-label">功能配置</span>
+        </router-link>
       </nav>
 
       <div class="side-foot">
@@ -52,9 +56,9 @@
         </div>
       </header>
 
-      <main class="admin-content" :class="{ 'is-view': isView }">
+      <main class="admin-content" :class="{ 'is-view': isView, 'is-config': isConfig }">
         <!-- 数据概览：仅数据管理模块显示实时记录数 -->
-        <section class="overview" v-if="!isView">
+        <section class="overview" v-if="!isView && !isConfig">
           <button
             v-for="m in ADMIN_MODULES"
             :key="'ov-' + m.key"
@@ -73,8 +77,11 @@
 
         <p class="mod-desc">{{ current.desc }}</p>
 
+        <!-- 功能配置：统一配置编辑界面 -->
+        <AdminConfig v-if="isConfig" />
+
         <!-- 数据管理：通用 CRUD 表格 -->
-        <AdminCrud v-if="!isView" :key="current.key" :mod="current" />
+        <AdminCrud v-else-if="!isView" :key="current.key" :mod="current" />
 
         <!-- 功能中心：嵌入前台完整交互页面 -->
         <div v-else class="embed-view">
@@ -96,6 +103,10 @@ import BattleArena from '../BattleArena.vue'
 import PowerRank from '../PowerRank.vue'
 import AnimeZone from '../AnimeZone.vue'
 import UserDirectory from '../UserDirectory.vue'
+import AdminConfig from './AdminConfig.vue'
+
+const CONFIG_META = { key: 'config', title: '功能配置', icon: '⚙️', subtitle: 'FEATURE CONFIG',
+  desc: '统一配置 5 个功能页的数值参数、内容数据与功能开关。' }
 
 const route = useRoute()
 const router = useRouter()
@@ -109,7 +120,7 @@ const VIEW_COMPONENTS = {
 }
 
 // 数据模块 + 功能页统一匹配（保证直接访问 /admin/xxx 时内容与侧边栏一致）
-const ALL_MODULES = [...ADMIN_MODULES, ...ADMIN_VIEWS]
+const ALL_MODULES = [...ADMIN_MODULES, ...ADMIN_VIEWS, CONFIG_META]
 const current = computed(() => {
   const found =
     ALL_MODULES.find((m) => route.path === `/admin/${m.key}`) ||
@@ -119,6 +130,7 @@ const current = computed(() => {
   return found.type === 'view' ? { ...found, component: VIEW_COMPONENTS[found.key] } : found
 })
 const isView = computed(() => current.value.type === 'view')
+const isConfig = computed(() => current.value.key === 'config')
 
 const adminName = ref('管理员')
 const avatarChar = computed(() => (adminName.value || '管')[0])

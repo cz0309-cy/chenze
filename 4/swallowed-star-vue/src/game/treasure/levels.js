@@ -107,3 +107,22 @@ export const LEVELS = [
 export function levelOf(id) {
   return LEVELS[Math.min(Math.max(id, 1), TOTAL_LEVELS) - 1]
 }
+
+/**
+ * 后台「功能配置」注入：原地覆盖各关难度参数（这些对象被题库/组件直接引用，改后立即生效）。
+ * 结构常量 TOTAL_LEVELS / MAX_ATTEMPT 保持不变，避免关卡数组错位。
+ * @param {object} cfg numbers.treasure 配置对象
+ */
+export function applyTreasureConfig(cfg) {
+  if (!cfg || typeof cfg !== 'object') return
+  const apply = (target, src) => {
+    if (!src || typeof src !== 'object') return
+    for (const k of Object.keys(target)) {
+      if (src[k] !== undefined && src[k] !== null) target[k] = src[k]
+    }
+  }
+  apply(L1, cfg.L1)
+  apply(L2, cfg.L2)
+  apply(L4, cfg.L4)
+  apply(L5, cfg.L5)
+}

@@ -170,6 +170,7 @@ import SiteNav from '../components/SiteNav.vue'
 import { getSession, fetchMe, logout } from '../composables/useAuth.js'
 import { useToast } from '../composables/useToast.js'
 import { fetchOverview, fetchEntries, fetchEntry } from '../api/home.js'
+import { getFeatureConfig } from '../api/config.js'
 
 const router = useRouter()
 const { show } = useToast()
@@ -321,19 +322,31 @@ function glyphStyle(item) {
 
 /* ===== 模块入口 ===== */
 const isAdmin = computed(() => session && session.permission === 0)
+// 功能开关：后台可隐藏指定功能页的首页入口
+const featureSwitches = ref(null)
+onMounted(async () => {
+  const cfg = await getFeatureConfig()
+  if (cfg?.switches) featureSwitches.value = cfg.switches
+})
+
 const modules = computed(() => {
-  const list = [
+  const all = [
     { to: '/explore', name: '星海探索', desc: '七片星域 · 星图与航行日志', icon: '🧭' },
     { to: '/codex', name: '文明图鉴', desc: '人类 / 异族 / 未知者档案', icon: '📖' },
     { to: '/market', name: '奇物交易', desc: '兵器 · 传承 · 材料 · 载具', icon: '💎' },
     { to: '/cultivate', name: '意识修炼', desc: '七境阶梯 · 念力推演', icon: '🧠' },
     { to: '/character', name: '人物档案', desc: '罗峰与同行者的人物志', icon: '👤' },
-    { to: '/treasure', name: '秘境寻宝', desc: '6 关闯关 · 1–4 人组队 · 失败退回上一关', icon: '🗝️' },
-    { to: '/battle', name: '星域擂台', desc: '以修为对战 · 4 名出战者 · 3 档难度', icon: '⚔️' },
-    { to: '/rank', name: '战力排行榜', desc: '星海强者 · 战力指数 · 我的排名', icon: '🏆' },
-    { to: '/anime', name: '动画专区', desc: '动画分季 · 剧情脉络 · 角色与剧场版', icon: '🎬' },
-    { to: '/members', name: '成员名录', desc: '注册战士 · 身份档案 · 实时数据', icon: '👥' }
+    { to: '/treasure', name: '秘境寻宝', desc: '6 关闯关 · 1–4 人组队 · 失败退回上一关', icon: '🗝️', feature: 'treasure' },
+    { to: '/battle', name: '星域擂台', desc: '以修为对战 · 4 名出战者 · 3 档难度', icon: '⚔️', feature: 'battle' },
+    { to: '/rank', name: '战力排行榜', desc: '星海强者 · 战力指数 · 我的排名', icon: '🏆', feature: 'rank' },
+    { to: '/anime', name: '动画专区', desc: '动画分季 · 剧情脉络 · 角色与剧场版', icon: '🎬', feature: 'anime' },
+    { to: '/members', name: '成员名录', desc: '注册战士 · 身份档案 · 实时数据', icon: '👥', feature: 'members' }
   ]
+  const list = all.filter((m) => {
+    if (!m.feature) return true
+    const sw = featureSwitches.value?.[m.feature]
+    return sw ? sw.showInNav !== false : true
+  })
   // 仅权限=0（管理员）可见「后台管理系统」入口；权限=1 默认用户不可见也无法进入
   if (isAdmin.value) {
     list.push({ to: '/admin/login', name: '后台管理系统', desc: '数据中枢 · 内容管理通道', icon: '🛡️' })

@@ -74,14 +74,23 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
 import { CHARACTERS, REALMS } from '../data/lore.js'
 import { getSession } from '../composables/useAuth.js'
 import { STORE_REALM, STORE_POWER } from '../game/battle/roster.js'
+import { getFeatureConfig } from '../api/config.js'
+import { DEFAULT_FEATURES } from '../config/defaults.js'
 
 const STORE_REALM_KEY = STORE_REALM
 const STORE_POWER_KEY = STORE_POWER
+
+// 战力折算系数（后台「功能配置」可改）
+const rankCfg = ref({ ...DEFAULT_FEATURES.numbers.rank })
+onMounted(async () => {
+  const cfg = await getFeatureConfig()
+  if (cfg?.numbers?.rank) rankCfg.value = { ...rankCfg.value, ...cfg.numbers.rank }
+})
 
 const session = getSession()
 const me = computed(() => ({
@@ -106,14 +115,14 @@ const realmName = computed(() => (REALMS[realmIdx.value] || REALMS[0]).name)
 // 人物能力条均值 → 战力指数
 function charScore(c) {
   const stats = c.stats || []
-  if (!stats.length) return 800
+  if (!stats.length) return rankCfg.value.charScoreBase
   const avg = stats.reduce((s, x) => s + (Number(x.value) || 0), 0) / stats.length
-  return Math.round(avg * 10)
+  return Math.round(avg * rankCfg.value.charScoreScale)
 }
 // 我的指数：境界越高系数越大，念力对数微调
 const myScore = computed(() => {
-  const base = 400 + realmIdx.value * 70
-  const bonus = Math.round(Math.log10(myPower.value) * 12)
+  const base = rankCfg.value.myBase + realmIdx.value * rankCfg.value.myPerRealm
+  const bonus = Math.round(Math.log10(myPower.value) * rankCfg.value.myPowerLogScale)
   return base + bonus
 })
 

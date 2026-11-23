@@ -16,8 +16,16 @@ import UserDirectory from '../views/UserDirectory.vue'
 import AdminLogin from '../views/admin/AdminLogin.vue'
 import AdminLayout from '../views/admin/AdminLayout.vue'
 import AdminCrud from '../views/admin/AdminCrud.vue'
+import AdminConfig from '../views/admin/AdminConfig.vue'
 import { ADMIN_MODULES, ADMIN_VIEWS } from '../admin/modules.js'
 import { getAdminToken } from '../api/admin.js'
+import { getFeatureSwitchesSync } from '../api/config.js'
+
+// 前台功能页路径 → 功能开关 key（enabled=false 时禁止访问）
+const FEATURE_PATHS = {
+  '/treasure': 'treasure', '/battle': 'battle', '/rank': 'rank',
+  '/anime': 'anime', '/members': 'members'
+}
 
 // 后台各模块页面：/admin/civs、/admin/goods、/admin/realms、/admin/characters
 const adminRoutes = ADMIN_MODULES.map((m) => ({
@@ -71,7 +79,8 @@ const routes = [
     children: [
       { path: '', redirect: '/admin/' + ADMIN_MODULES[0].key },
       ...adminRoutes,
-      ...adminViewRoutes
+      ...adminViewRoutes,
+      { path: 'config', name: 'admin-config', component: AdminConfig, meta: { adminAuth: true } }
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/home' }
@@ -84,6 +93,12 @@ const router = createRouter({
 
 // 未登录（无 token）访问需要登录的页面则跳回登录
 router.beforeEach((to) => {
+  // 功能开关：被后台关闭的功能页禁止访问（含后台嵌入路由不受此限）
+  const featureKey = FEATURE_PATHS[to.path]
+  if (featureKey) {
+    const sw = getFeatureSwitchesSync()?.[featureKey]
+    if (sw && sw.enabled === false) return '/home'
+  }
   const adminToken = getAdminToken()
   // 后台路由需要独立的管理员 token（含 /admin 父路由本身）
   if (to.path.startsWith('/admin') && to.path !== '/admin/login') {

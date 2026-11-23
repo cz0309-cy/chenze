@@ -99,3 +99,23 @@ export const EFFECT_LABEL = {
   heal: '治疗',
   drainMp: '吸念'
 }
+
+/**
+ * 后台「功能配置」注入：原地覆盖 RULES 与 DIFFICULTY 的奖励，使引擎所有引用即时生效。
+ * 由 main.js 在启动时调用一次；未配置时保持默认值。
+ * @param {object} cfg numbers.battle 配置对象
+ */
+export function applyBattleConfig(cfg) {
+  if (!cfg || typeof cfg !== 'object') return
+  for (const k of Object.keys(RULES)) {
+    if (cfg[k] === undefined || cfg[k] === null) continue
+    if (k === 'rewards') continue
+    RULES[k] = cfg[k]
+  }
+  if (cfg.rewards && typeof cfg.rewards === 'object') {
+    for (const d of DIFFICULTY) {
+      if (cfg.rewards[d.key] !== undefined) d.reward = cfg.rewards[d.key]
+    }
+    if (cfg.rewards.lose !== undefined) RULES.loseReward = cfg.rewards.lose
+  }
+}

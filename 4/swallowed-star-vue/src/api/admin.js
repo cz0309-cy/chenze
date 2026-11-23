@@ -83,3 +83,20 @@ export function updateAdminItem(module, id, data) {
 export function deleteAdminItem(module, id) {
   return adminRequest('DELETE', `/admin/lore/${module}/${id}`)
 }
+
+/* ---------------- 功能中心配置（数值参数 / 内容数据 / 功能开关） ---------------- */
+
+/** 读取功能配置；未配置时返回 data:null */
+export function fetchFeatureConfig() {
+  return adminRequest('GET', '/admin/config/features')
+}
+
+/** 保存功能配置（整体覆盖） */
+export function saveFeatureConfig(config) {
+  return adminRequest('PUT', '/admin/config/features', config)
+}
+
+/** 删除配置（恢复前端默认值） */
+export function resetFeatureConfig() {
+  return adminRequest('DELETE', '/admin/config/features')
+}
