@@ -6,8 +6,82 @@
       <header class="page-head">
         <div class="eyebrow">ANIME ZONE</div>
         <h1>动画专区</h1>
-        <p>从地球到宇宙海，吞噬星空的影像化编年史。按季梳理剧情脉络，回看角色成长与剧场版篇章。</p>
+        <p>从地球到宇宙海，吞噬星空的影像化编年史。选择你电脑里的视频，即刻在此放映。</p>
       </header>
+
+      <!-- 本地影像馆：选择本地视频即时播放 -->
+      <section class="card az-player">
+        <div class="card-head">
+          <h3>🎬 本地影像馆</h3>
+          <span>视频只在你的浏览器播放，不会上传</span>
+        </div>
+
+        <div class="az-player-body">
+          <!-- 播放区 -->
+          <div class="az-stage">
+            <video
+              v-if="currentVideo"
+              ref="videoEl"
+              class="az-video"
+              :src="currentVideo.url"
+              controls
+              playsinline
+              preload="metadata"
+            ></video>
+            <div v-else class="az-stage-empty">
+              <div class="az-stage-glyph">▶</div>
+              <p>还没有视频</p>
+              <span>点击下方按钮，从电脑里挑选视频开始放映</span>
+            </div>
+          </div>
+
+          <!-- 控制栏 -->
+          <div class="az-controls">
+            <input
+              ref="fileInput"
+              type="file"
+              accept="video/*,.mp4,.webm,.ogg,.mov,.m4v,.mkv,.avi"
+              multiple
+              class="az-file-input"
+              @change="onFileChange"
+            />
+            <button type="button" class="az-pick-btn" @click="fileInput?.click()">
+              <span>＋</span> 选择本地视频
+            </button>
+            <div class="az-now" v-if="currentVideo">
+              <span class="az-now-label">正在放映</span>
+              <b :title="currentVideo.name">{{ currentVideo.name }}</b>
+              <span class="az-now-size">{{ formatSize(currentVideo.size) }}</span>
+            </div>
+            <div class="az-now az-now-idle" v-else>
+              <span>支持 mp4 / webm / ogg，可一次选择多集</span>
+            </div>
+          </div>
+
+          <p v-if="hint" class="az-hint">{{ hint }}</p>
+
+          <!-- 播放列表 -->
+          <div v-if="playlist.length" class="az-playlist">
+            <div class="az-playlist-head">
+              <h4>播放列表 <span>{{ playlist.length }} 个视频</span></h4>
+              <button type="button" class="az-clear-btn" @click="clearAll">清空</button>
+            </div>
+            <ul>
+              <li
+                v-for="(v, i) in playlist"
+                :key="v.id"
+                :class="{ on: i === currentIndex }"
+                @click="selectVideo(i)"
+              >
+                <span class="az-pl-no">{{ String(i + 1).padStart(2, '0') }}</span>
+                <span class="az-pl-name" :title="v.name">{{ v.name }}</span>
+                <span class="az-pl-size">{{ formatSize(v.size) }}</span>
+                <button type="button" class="az-pl-del" title="移除" @click.stop="removeVideo(i)">×</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
       <!-- 分季切换 -->
       <div class="az-seasons">
@@ -86,13 +160,13 @@
         </section>
       </div>
 
-      <p class="az-footnote">本页为剧情资料整理，影像版权归原作方所有。</p>
+      <p class="az-footnote">视频仅在本地浏览器播放，不上传服务器；剧情资料版权归原作方所有。</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick, onBeforeUnmount } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
 
 const seasons = [
@@ -156,9 +230,146 @@ const seasons = [
 
 const current = ref(0)
 const season = computed(() => seasons[current.value] || null)
+
+/* ---------- 本地视频播放 ---------- */
+const fileInput = ref(null)
+const videoEl = ref(null)
+const playlist = ref([])       // { id, name, size, url }
+const currentIndex = ref(-1)
+const hint = ref('')
+let uid = 0
+
+const currentVideo = computed(() =>
+  currentIndex.value >= 0 ? playlist.value[currentIndex.value] || null : null
+)
+
+function formatSize(bytes) {
+  if (!bytes && bytes !== 0) return ''
+  if (bytes < 1024) return bytes + ' B'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+  if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB'
+  return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB'
+}
+
+function onFileChange(e) {
+  const files = Array.from(e.target.files || [])
+  e.target.value = '' // 允许再次选择同一文件
+  if (!files.length) return
+  const added = files.map(f => ({
+    id: ++uid,
+    name: f.name,
+    size: f.size,
+    url: URL.createObjectURL(f)
+  }))
+  playlist.value = added
+  currentIndex.value = 0
+  hint.value = added.length > 1
+    ? `已载入 ${added.length} 个视频，点播放列表可切换。`
+    : ''
+  nextTick(() => videoEl.value?.load())
+}
+
+function selectVideo(i) {
+  if (i < 0 || i >= playlist.value.length) return
+  currentIndex.value = i
+  hint.value = ''
+  nextTick(() => {
+    videoEl.value?.load()
+    videoEl.value?.play().catch(() => {}) // 部分浏览器需手动点播放
+  })
+}
+
+function removeVideo(i) {
+  const [gone] = playlist.value.splice(i, 1)
+  if (gone) URL.revokeObjectURL(gone.url)
+  if (!playlist.value.length) {
+    currentIndex.value = -1
+  } else if (i < currentIndex.value) {
+    currentIndex.value--
+  } else if (i === currentIndex.value) {
+    currentIndex.value = Math.min(i, playlist.value.length - 1)
+    nextTick(() => videoEl.value?.load())
+  }
+}
+
+function clearAll() {
+  playlist.value.forEach(v => URL.revokeObjectURL(v.url))
+  playlist.value = []
+  currentIndex.value = -1
+  hint.value = ''
+}
+
+onBeforeUnmount(clearAll)
 </script>
 
 <style scoped>
+/* ---------- 本地影像馆 ---------- */
+.az-player { max-width: 1000px; margin: 0 auto 22px; padding: 0; overflow: hidden; }
+.az-player .card-head { padding: 16px 22px; margin: 0; border-bottom: 1px solid var(--panel-line); }
+.az-player .card-head h3 { font-size: 16px; letter-spacing: 1px; }
+.az-player .card-head span { font-size: 11px; color: var(--muted); }
+.az-player-body { padding: 20px 22px 22px; }
+
+.az-stage {
+  position: relative; width: 100%; aspect-ratio: 16 / 9;
+  border-radius: 12px; overflow: hidden; background: #05070e;
+  border: 1px solid var(--panel-line);
+}
+.az-video { width: 100%; height: 100%; display: block; background: #05070e; }
+.az-stage-empty {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px; text-align: center;
+  background: radial-gradient(circle at 50% 45%, rgba(255,212,121,.06), transparent 60%);
+}
+.az-stage-glyph {
+  width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%;
+  font-size: 26px; color: var(--gold); padding-left: 4px;
+  border: 1px solid rgba(255,212,121,.35);
+  background: rgba(255,212,121,.08);
+}
+.az-stage-empty p { margin: 4px 0 0; font-size: 15px; color: var(--text); }
+.az-stage-empty span { font-size: 12px; color: var(--muted); }
+
+.az-controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 16px; }
+.az-file-input { display: none; }
+.az-pick-btn {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 11px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; letter-spacing: 1px;
+  color: #1a1206; border: 1px solid var(--gold);
+  background: linear-gradient(180deg, #ffe6a8, var(--gold)); transition: 0.2s;
+}
+.az-pick-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.az-pick-btn span { font-size: 18px; line-height: 1; }
+.az-now { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.az-now-label { font-size: 10px; letter-spacing: 2px; color: var(--gold); }
+.az-now b { font-size: 13px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.az-now-size { font-size: 11px; color: var(--cyan); }
+.az-now-idle span { font-size: 12px; color: var(--muted); }
+.az-hint { margin: 12px 0 0; font-size: 12px; color: var(--cyan); }
+
+.az-playlist { margin-top: 18px; border-top: 1px solid var(--panel-line); padding-top: 14px; }
+.az-playlist-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.az-playlist-head h4 { font-size: 13px; letter-spacing: 1px; }
+.az-playlist-head h4 span { font-size: 11px; color: var(--muted); margin-left: 8px; font-weight: 400; }
+.az-clear-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; }
+.az-clear-btn:hover { color: #ff6b8a; }
+.az-playlist ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.az-playlist li {
+  display: flex; align-items: center; gap: 12px; padding: 9px 12px; cursor: pointer;
+  border-radius: 8px; border: 1px solid transparent; background: rgba(255,255,255,.02); transition: 0.18s;
+}
+.az-playlist li:hover { background: rgba(255,212,121,.06); }
+.az-playlist li.on { border-color: rgba(255,212,121,.4); background: rgba(255,212,121,.09); }
+.az-pl-no { font-size: 11px; color: var(--gold); font-variant-numeric: tabular-nums; }
+.az-pl-name { flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.az-pl-size { font-size: 11px; color: var(--muted); }
+.az-pl-del {
+  background: none; border: none; color: var(--muted); font-size: 18px; line-height: 1;
+  cursor: pointer; padding: 0 2px;
+}
+.az-pl-del:hover { color: #ff6b8a; }
+
+/* ---------- 原有分季资料 ---------- */
 .az-seasons {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
   max-width: 1000px; margin: 0 auto 20px;
