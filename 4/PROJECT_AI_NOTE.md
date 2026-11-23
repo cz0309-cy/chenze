@@ -426,6 +426,54 @@ CDP 无头 Chrome 走通「登台 → 回合 → 结算 → 换个对手 → 再
 `npm run build` 通过（82 modules）；CDP 真实登录 `chenze/123456` 遍历 11 页控制台 0 错误；
 擂台实战打赢金角巨兽 → +2400 币，钱包 500000→502400。
 
+## 15. 功能中心扩展（2026-11-23）
+
+### 15.1 动画专区：本地视频 + B站在线放映
+- **本地影像馆**：`<input type=file multiple>` 选本地视频，`URL.createObjectURL` 生成 blob URL 喂给
+  `<video controls>` 播放，不上传；支持播放列表（切换/移除/清空），组件卸载时 `revokeObjectURL` 防泄漏。
+- **B站在线放映**：用官方 iframe `https://player.bilibili.com/player.html?bvid=xxx&page=1&high_quality=1&danmaku=0`，
+  `referrerpolicy=no-referrer`；5 个预设视频 + 粘贴链接/BV号正则解析。
+- ⚠️ 用户曾要求"从B站下载视频存到本地"——**拒绝**：搜到的《吞噬星空》视频均标注"未经作者授权，禁止转载"，
+  批量下载正版动画到本地属规避版权保护。替代为官方嵌入播放（合规且体验接近）。
+
+### 15.2 后台接入 5 个功能页
+- 侧边栏新增「功能中心」分组：秘境寻宝/星域擂台/战力榜/动画专区/成员名录。
+- ⚠️ **关键**：这 5 页根元素是 `.page-shell`（`position:fixed;inset:0;padding-top:96px`）且自带 `.topnav` 前台导航，
+  不能当 CRUD 表格塞。做法：`ADMIN_VIEWS` 配置(type:'view') + 内容区 `<component :is>` 动态渲染 +
+  `:deep()` 样式覆盖（page-shell 改 static、隐藏 .topnav），融入后台框架。5 个页面本身未改。
+
+### 15.3 功能配置系统：后台改数值/内容/开关（存后端数据库）
+- **数据层**：`feature_config` 表（`cfg_key` + `cfg_value` LONGTEXT JSON），schema.sql 幂等建表。
+- **接口**：
+  - 公开只读 `GET /api/config/features`（功能页无需登录即可读，未配置返回 `data:null`）
+  - 管理端 `GET/PUT/DELETE /api/admin/config/features`（校验 `permission==0`，沿用 `AdminAuthController.currentAdmin`）
+- **前端接入**：
+  - `src/config/defaults.js`：默认配置 = schema 单一来源 + `deepMerge`；`src/api/config.js`：内存+localStorage 缓存兜底，
+    导出 `getFeatureSwitchesSync()` 供路由守卫同步读。
+  - `main.js` 启动加载配置 → `applyBattleConfig()`（roster.js 原地改 RULES/DIFFICULTY.reward）、
+    `applyTreasureConfig()`（levels.js 原地改 L1/L2/L4/L5）。**引擎代码零改动**，靠原地覆盖模块级常量生效。
+  - 可配：擂台公式/暴击/回念/三档奖励、秘境各关难度参数、战力折算系数、动画视频、成员名录。
+  - 功能开关：`showInNav` 控制 SiteNav/Home 入口，`enabled` 由路由守卫拦截（仅前台 5 页路径，后台路由不受限）。
+  - ⚠️ 秘境 `TOTAL_LEVELS`/`MAX_ATTEMPT` 是结构常量（ESM number 导入只读），改了会关卡错位，故不开放。
+- **后台界面**：`views/admin/AdminConfig.vue` 三 Tab（功能开关/数值参数 37 字段/内容数据 JSON）+ `/admin/config` 路由 + 侧栏入口。
+- 验证：build 86 modules；真实登录测三 Tab/保存/公开读取/开关生效/恢复默认，控制台 0 错误。
+  提交 `dfad953`（19 文件 872 行）。
+
+### 15.4 ⚠️ 后端重新构建的坑（重要，下次必看）
+1. **`mvnw` 在 Git Bash 下失败**：报 `找不到或无法加载主类 org.codehaus.plexus.classworlds.launcher.Launcher`
+   （临时路径拼接 bug）。**不要用 mvnw**。改用已下载好的 Maven + PowerShell：
+   ```powershell
+   $env:JAVA_HOME = "C:\Program Files\Zulu\zulu-21"
+   $mvn = "C:\Users\Administrator\.m2\wrapper\dists\apache-maven-3.9.9-bin\4nf9hui3q3djbarqar9g711ggc\apache-maven-3.9.9\bin\mvn.cmd"
+   Set-Location "D:\workSpace\chenze\4\springBootTest"
+   & $mvn clean package -DskipTests -q *> "build.log"   # PowerShell 下 stdout 易被吞，重定向到文件再读
+   ```
+2. **`clean` 报 jar 被占用**：旧 jar 正被运行中的后端 java 进程占用 → 先 `Stop-Process -Id <8081的PID> -Force`，
+   再打包；否则 `Failed to delete ...springBootTest-...jar`。
+3. 打包成功后用新 jar 重启：`java -jar target/springBootTest-0.0.1-SNAPSHOT.jar --server.port=8081 --spring.profiles.active=dev`。
+   schema.sql 会在启动时自动建 `feature_config` 表。
+4. 相关 git 存档：`efe2175`（后台接入5页）、`dfad953`（功能配置系统）。
+
 
 
 
