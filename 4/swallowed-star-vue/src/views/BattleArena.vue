@@ -201,7 +201,7 @@
               :disabled="a.key === 'art' && !canArtNow()"
               @click="doAction(a.key)"
             >
-              <span class="bt-act-icon">{{ a.icon }}</span>
+              <span class="bt-act-icon"><AppIcon :emoji="a.icon" :size="30" /></span>
               <b>{{ a.label }}</b>
               <em>{{ a.desc }}</em>
             </button>
@@ -270,6 +270,7 @@
 <script setup>
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
+import AppIcon from '../components/AppIcon.vue'
 import { createBattle } from '../game/battle/engine.js'
 import { STORE_REALM, STORE_POWER } from '../game/battle/roster.js'
 

@@ -48,7 +48,7 @@
           <div class="tg-rules">
             <div v-for="l in LEVELS" :key="l.id" class="tg-rule-row">
               <span class="tg-rule-id">{{ l.id }}</span>
-              <span class="tg-rule-ico">{{ l.icon }}</span>
+              <span class="tg-rule-ico"><AppIcon :emoji="l.icon" :size="24" /></span>
               <span class="tg-rule-name">{{ l.name }}</span>
               <span class="tg-rule-text">{{ l.rule }}</span>
             </div>
@@ -93,7 +93,7 @@
 
         <section class="tg-board">
           <div class="tg-level-head">
-            <span class="tg-level-ico">{{ current.icon }}</span>
+            <span class="tg-level-ico"><AppIcon :emoji="current.icon" :size="48" /></span>
             <div class="tg-level-title">
               <div class="tg-level-tag">{{ current.tag }} · 第 {{ state.level }} 关</div>
               <h2>{{ current.name }}</h2>
@@ -195,6 +195,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
+import AppIcon from '../components/AppIcon.vue'
 import L1Observe from '../components/treasure/L1Observe.vue'
 import L2Reaction from '../components/treasure/L2Reaction.vue'
 import L3Logic from '../components/treasure/L3Logic.vue'

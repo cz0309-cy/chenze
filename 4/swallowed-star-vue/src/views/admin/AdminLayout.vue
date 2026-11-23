@@ -20,7 +20,7 @@
           class="side-item"
           :class="{ active: current.key === m.key }"
         >
-          <span class="side-icon">{{ m.icon }}</span>
+          <span class="side-icon"><AppIcon :emoji="m.icon" :size="20" /></span>
           <span class="side-label">{{ m.title }}</span>
         </router-link>
         <div class="side-group">功能中心</div>
@@ -31,11 +31,11 @@
           class="side-item"
           :class="{ active: current.key === v.key }"
         >
-          <span class="side-icon">{{ v.icon }}</span>
+          <span class="side-icon"><AppIcon :emoji="v.icon" :size="20" /></span>
           <span class="side-label">{{ v.title }}</span>
         </router-link>
         <router-link to="/admin/config" class="side-item" :class="{ active: current.key === 'config' }">
-          <span class="side-icon">⚙️</span>
+          <span class="side-icon"><AppIcon emoji="⚙️" :size="20" /></span>
           <span class="side-label">功能配置</span>
         </router-link>
       </nav>
@@ -66,7 +66,7 @@
             :class="{ active: current.key === m.key }"
             @click="$router.push('/admin/' + m.key)"
           >
-            <span class="ov-icon">{{ m.icon }}</span>
+            <span class="ov-icon"><AppIcon :emoji="m.icon" :size="30" /></span>
             <span class="ov-body">
               <b>{{ m.title }}</b>
               <em>{{ counts[m.key] === null ? '—' : counts[m.key] + ' 条记录' }}</em>
@@ -98,6 +98,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ADMIN_MODULES, ADMIN_VIEWS } from '../../admin/modules.js'
 import { adminLogout, adminMe, clearAdminToken, fetchAdminPage } from '../../api/admin.js'
 import AdminCrud from './AdminCrud.vue'
+import AppIcon from '../../components/AppIcon.vue'
 import StarGame from '../StarGame.vue'
 import BattleArena from '../BattleArena.vue'
 import PowerRank from '../PowerRank.vue'
@@ -419,6 +420,13 @@ onBeforeUnmount(() => {
   border-radius: 10px;
   background: rgba(102, 224, 255, 0.1);
   font-size: 19px;
+  overflow: hidden;
+}
+.ov-icon :deep(.app-icon) {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 10px;
+  box-shadow: none;
 }
 .ov-card.active .ov-icon { background: rgba(255, 212, 121, 0.14); }
 .ov-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }

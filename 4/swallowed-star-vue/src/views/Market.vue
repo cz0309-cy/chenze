@@ -48,7 +48,7 @@
             :class="{ inCart: cart.includes(keyOf(g)) }"
           >
             <div class="good-top">
-              <span class="good-glyph" :style="rarityStyle(g.rarity)">{{ g.glyph }}</span>
+              <span class="good-glyph" :style="rarityStyle(g.rarity)"><AppIcon :emoji="g.glyph" :size="40" /></span>
               <span class="rarity" :style="rarityStyle(g.rarity)">{{ g.rarity }}</span>
             </div>
             <h4>{{ g.name }}</h4>
@@ -83,7 +83,7 @@
 
             <ul v-if="cartItems.length" class="cart-list">
               <li v-for="g in cartItems" :key="keyOf(g)">
-                <span class="cg">{{ g.glyph }}</span>
+                <span class="cg"><AppIcon :emoji="g.glyph" :size="26" /></span>
                 <div class="ci">
                   <b>{{ g.name }}</b>
                   <span>{{ g.cat }}</span>
@@ -112,7 +112,7 @@
             </div>
             <ul v-if="bag.length" class="bag-list">
               <li v-for="b in bag" :key="b.code">
-                <span class="cg">{{ b.glyph }}</span>
+                <span class="cg"><AppIcon :emoji="b.glyph" :size="26" /></span>
                 <div class="ci">
                   <b>{{ b.name }}</b>
                   <span>{{ b.rarity }} · {{ b.cat }}</span>
@@ -134,6 +134,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
+import AppIcon from '../components/AppIcon.vue'
 import { GOODS } from '../data/lore.js'
 import { fetchLore } from '../api/lore.js'
 import { useToast } from '../composables/useToast.js'

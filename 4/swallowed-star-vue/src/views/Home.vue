@@ -52,7 +52,7 @@
     <!-- 模块入口 -->
     <section class="mod-entries">
       <router-link v-for="m in modules" :key="m.to" :to="m.to" class="mod-entry">
-        <span class="me-ico">{{ m.icon }}</span>
+        <span class="me-ico"><AppIcon :emoji="m.icon" :size="34" /></span>
         <div>
           <b>{{ m.name }}</b>
           <em>{{ m.desc }}</em>
@@ -167,6 +167,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SiteNav from '../components/SiteNav.vue'
+import AppIcon from '../components/AppIcon.vue'
 import { getSession, fetchMe, logout } from '../composables/useAuth.js'
 import { useToast } from '../composables/useToast.js'
 import { fetchOverview, fetchEntries, fetchEntry } from '../api/home.js'
