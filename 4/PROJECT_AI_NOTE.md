@@ -402,9 +402,29 @@ CDP 无头 Chrome 走通「登台 → 回合 → 结算 → 换个对手 → 再
 - 结果：`npm run build` 通过（69 modules）；CDP 无头 Chrome 端到端验证：登录页渲染正常、
   真实登录 `chenze/123456` → `/home` 正文 1069 字符、导航 7 项、控制台 0 错误。
 
-**恢复这 4 个功能页时**（若日后找回文件或重做）：取消上面 4 处 TODO 注释即可，
-页面文件 + css + `game/battle/` 都要齐；`StarfieldScene.vue` 已重建无需再补。
-建议给项目建 git 或定期备份 `src/`，否则这类丢失会反复发生。
+**✅ 2026-11-23 当天续：已完整重建 4 页并 git 存档（当前为最终状态，4 页均已恢复上线）**
+
+上面的"止血注释"是中间状态，随后应用户要求做了完整重建，4 处 TODO 注释已全部取消、
+导航恢复 11 项。重建文件（均无原始备份，按第 13 节规格 + 现有数据层重建）：
+- `game/battle/roster.js`：模式/4 出战者/4 对手/3 难度/4 指令/公式常量
+- `game/battle/engine.js`：`createBattle()` 状态机——`powerToHp()` log10 映射（1→20,10^6→140，
+  每×10 血条+20）、境界压制每境±8%、护体/凝神/秘法+四特效、人机+双人交接、战绩、奖励幂等
+- `views/BattleArena.vue` + `styles/battle.css`：选模式→选人→对战→Teleport 结算弹层
+- `views/PowerRank.vue`+`rank.css`、`views/AnimeZone.vue`+`anime.css`、`views/UserDirectory.vue`+`userDirectory.css`
+- `StarfieldScene.vue`：基于 `Starfield.vue` 复刻（用 class 避免与全局 `#starfield` 重复 id）
+
+**成员名录注意**：后端没有 `/auth/users` 接口（`api/auth.js` 里的 `membersApi()` 是前端单方面写的），
+页面已做兜底——先试接口，失败则用本地演示名录，不会报错。若要真正接后端，需先在
+`AuthController` 加 `GET /api/auth/users`（脱敏，不含密码）。
+
+**防再次丢失（关键）**：项目其实在父仓库 `D:\workSpace\chenze` 下（顶层无独立 .git）。
+这批文件此前从未 `git add`——这正是每次重置后丢失的根因。现已提交 `281b0b6`（12 文件 1903 行）。
+以后若再丢失，在 `D:\workSpace\chenze` 执行 `git checkout -- 4/swallowed-star-vue/src/` 即可一键恢复。
+新增/改动页面后记得 `git add` + `git commit`。
+
+**验证结果**：引擎 Node 模拟胜率曲线符合预期（境界3对 tier4 约1%、境界5约98%）；
+`npm run build` 通过（82 modules）；CDP 真实登录 `chenze/123456` 遍历 11 页控制台 0 错误；
+擂台实战打赢金角巨兽 → +2400 币，钱包 500000→502400。
 
 
 
