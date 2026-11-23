@@ -376,6 +376,36 @@ CDP 无头 Chrome 走通「登台 → 回合 → 结算 → 换个对手 → 再
 - 键盘 1–4 只对当前下令方生效；交接遮挡期间 `choose()` 直接 return
 - `play()` 里加了 `mode === 'pvp'` 守卫，双人模式只能走 `submitPvp()`，防止两条路径混用
 
+## 14. 整站白屏/“接收不到网页”根因与止血（2026-11-23）
+> 现象：浏览器打开全是白屏（用户表述“接收不到网页”）。curl 拿到 200 只是空壳 HTML，
+> 真正原因在浏览器端 JS 加载阶段。**排查口诀（再次验证有效）：先 `npm run build`，
+> 看 `Failed to resolve import` / `Could not resolve`，别先怀疑 IP / 代理 / 跨域 / 后端。**
+
+**本次根因：又一批前端源文件丢失（第二次了，上次 2026-11-18 丢过 BattleArena 那批）**
+丢失清单（9 个，无 git、无备份、`src_backup_20261019` 里也没有）：
+- `src/styles/`：`battle.css` `rank.css` `anime.css` `userDirectory.css`
+- `src/views/`：`BattleArena.vue` `PowerRank.vue` `AnimeZone.vue` `UserDirectory.vue`
+- `src/components/`：`StarfieldScene.vue`（登录/注册页背景）
+- `src/game/battle/` 整个目录（`roster.js` `engine.js`，仅被 BattleArena 引用）
+其中 `battle.css` 是 build 第一个报错点（main.js 第 7 行 import），改完才依次暴露后面的。
+
+**一次性扫全部丢失 import 的脚本**（避免 build→报错→改一个→再 build 的低效循环）：
+在 `src/` 下用 Python 正则匹配所有 `from '...'` / `import('...')` 相对路径，逐个测 `.js/.vue/.ts/index.*` 是否存在。
+
+**本次止血处理（可逆，全部带 TODO 注释）**
+- `main.js`：注释 4 个丢失 css 的 import
+- `router/index.js`：注释 4 个页面 import + 4 条路由（battle/rank/anime/members）
+- `SiteNav.vue`：注释 4 个导航项 → 导航由 11 项暂时变 7 项
+- `Home.vue`：注释 4 个模块卡片
+- `StarfieldScene.vue`：**重建**（登录/注册页要用，不能只注释）——基于现存 `Starfield.vue` 复刻，
+  改用 `class="starfield-scene"` + scoped style（避免和 App.vue 全局 `#starfield` 重复 id）
+- 结果：`npm run build` 通过（69 modules）；CDP 无头 Chrome 端到端验证：登录页渲染正常、
+  真实登录 `chenze/123456` → `/home` 正文 1069 字符、导航 7 项、控制台 0 错误。
+
+**恢复这 4 个功能页时**（若日后找回文件或重做）：取消上面 4 处 TODO 注释即可，
+页面文件 + css + `game/battle/` 都要齐；`StarfieldScene.vue` 已重建无需再补。
+建议给项目建 git 或定期备份 `src/`，否则这类丢失会反复发生。
+
 
 
 

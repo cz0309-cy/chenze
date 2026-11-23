@@ -1,0 +1,2 @@
+/* 战力排行榜补充样式（页面主样式在 views/PowerRank.vue 的 scoped style 中） */
+.pr-page .page-inner { animation: rise .5s ease-out both; }

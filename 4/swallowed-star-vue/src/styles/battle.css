@@ -1,0 +1,315 @@
+/* ============================================================
+   吞噬星空 · 星域擂台样式（.bt-*）
+   与 style.css / pages.css 共用同一套 CSS 变量
+   注意：.bt-page 带 rise 动画（transform），会成为 fixed 包含块，
+   故所有全屏遮罩/弹层在组件里用 <Teleport to="body">。
+   ========================================================== */
+
+.bt-page { animation: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* ---------- 通用看板 ---------- */
+.bt-board {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: rise 0.7s 0.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.bt-sec-title {
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin: 6px 0 -4px;
+  opacity: 0.85;
+}
+
+/* ---------- 模式 ---------- */
+.bt-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bt-mode {
+  text-align: left;
+  padding: 18px 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-line);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  transition: 0.22s;
+}
+.bt-mode b { display: block; font-size: 16px; letter-spacing: 2px; }
+.bt-mode span { display: block; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.bt-mode:hover { border-color: rgba(255, 212, 121, 0.4); transform: translateY(-2px); }
+.bt-mode.on {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, rgba(255, 212, 121, 0.12), var(--panel));
+  box-shadow: 0 0 0 1px rgba(255, 212, 121, 0.2), var(--shadow);
+}
+.bt-mode.on b { color: var(--gold); }
+
+/* ---------- 选人卡片 ---------- */
+.bt-picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 12px; }
+.bt-pick {
+  --pc: var(--cyan);
+  position: relative;
+  padding: 18px 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-line);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  text-align: center;
+  transition: 0.22s;
+}
+.bt-pick:hover { transform: translateY(-3px); border-color: var(--pc); }
+.bt-pick.on {
+  border-color: var(--pc);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--pc) 14%, transparent), var(--panel));
+  box-shadow: 0 0 0 1px var(--pc), var(--shadow);
+}
+.bt-pick-glyph {
+  display: grid;
+  place-items: center;
+  width: 58px; height: 58px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  font-size: 26px;
+  color: var(--pc);
+  border: 1px solid color-mix(in srgb, var(--pc) 45%, transparent);
+  background: color-mix(in srgb, var(--pc) 10%, transparent);
+}
+.bt-pick b { display: block; font-size: 16px; letter-spacing: 2px; }
+.bt-pick-en { display: block; font-size: 10px; letter-spacing: 1.5px; color: var(--muted); margin-top: 3px; }
+.bt-pick-meta { display: block; font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+.bt-pick-art { display: block; font-size: 11px; color: var(--pc); margin-top: 8px; }
+
+/* ---------- 难度 ---------- */
+.bt-diffs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.bt-diff {
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-line);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  transition: 0.22s;
+}
+.bt-diff b { display: block; font-size: 14px; letter-spacing: 2px; }
+.bt-diff span { display: block; font-size: 11px; color: var(--muted); margin-top: 5px; }
+.bt-diff em { display: block; font-style: normal; font-size: 11px; color: var(--gold); margin-top: 7px; }
+.bt-diff:hover { border-color: rgba(255, 212, 121, 0.4); }
+.bt-diff.on { border-color: var(--gold); background: rgba(255, 212, 121, 0.08); }
+.bt-diff.on b { color: var(--gold); }
+
+/* ---------- 修为预览 / 按钮 ---------- */
+.bt-cultivation {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--panel-line);
+  font-size: 13px;
+}
+.bt-cultivation span { color: var(--muted); }
+.bt-cultivation b { color: var(--cyan); }
+.bt-cultivation-tip { margin-left: auto; font-size: 11px; }
+.bt-primary, .bt-ghost {
+  padding: 13px 30px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.bt-primary {
+  border: 1px solid var(--gold);
+  background: linear-gradient(135deg, rgba(255, 212, 121, 0.22), rgba(255, 212, 121, 0.08));
+  color: var(--gold);
+}
+.bt-primary:hover:not(:disabled) { background: rgba(255, 212, 121, 0.3); box-shadow: var(--shadow); }
+.bt-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.bt-ghost { border: 1px solid var(--panel-line); background: transparent; color: var(--muted); }
+.bt-ghost:hover { border-color: var(--muted); color: var(--text); }
+.bt-board > .bt-primary { align-self: flex-end; }
+.bt-select-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 6px; }
+
+/* ============================================================
+   对战中
+   ========================================================== */
+.bt-arena {
+  display: grid;
+  grid-template-columns: 1fr 130px 1fr;
+  gap: 18px;
+  align-items: center;
+  max-width: 960px;
+  margin: 0 auto 22px;
+  animation: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.bt-fighter {
+  --pc: var(--cyan);
+  position: relative;
+  padding: 22px 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-line);
+  background: var(--panel);
+  text-align: center;
+  transition: 0.3s;
+}
+.bt-fighter.is-active {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(255, 212, 121, 0.35), var(--shadow);
+}
+.bt-avatar {
+  display: grid; place-items: center;
+  width: 76px; height: 76px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  font-size: 34px;
+  color: var(--pc);
+  border: 2px solid color-mix(in srgb, var(--pc) 55%, transparent);
+  background: radial-gradient(circle, color-mix(in srgb, var(--pc) 20%, transparent), transparent 70%);
+}
+.bt-fname { font-size: 19px; font-weight: 700; letter-spacing: 3px; }
+.bt-fen { font-size: 10px; letter-spacing: 1.5px; color: var(--muted); margin-top: 4px; }
+.bt-bar {
+  position: relative;
+  height: 18px;
+  margin-top: 12px;
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--panel-line);
+  overflow: hidden;
+}
+.bt-bar i {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, #ff5c6c, #ff9a6c);
+  transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.bt-bar.mp i { background: linear-gradient(90deg, #4aa8ff, #66e0ff); }
+.bt-bar span {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-size: 11px; color: #fff; text-shadow: 0 1px 2px #000;
+}
+.bt-floaters { position: absolute; inset: 0; pointer-events: none; }
+.bt-floaters span {
+  position: absolute; left: 50%; top: 40%;
+  transform: translateX(-50%);
+  font-size: 18px; font-weight: 700;
+  animation: btFloat 1.1s ease-out forwards;
+}
+.fl-dmg { color: #ff7a7a; }
+.fl-crit { color: #ffd479; font-size: 24px; }
+.fl-heal { color: #7dffb0; }
+.fl-mp { color: #66e0ff; }
+@keyframes btFloat {
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.8); }
+  25% { opacity: 1; transform: translate(-50%, -6px) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -46px) scale(1); }
+}
+.bt-center { text-align: center; }
+.bt-vs {
+  font-size: 40px; font-weight: 900; font-style: italic;
+  color: var(--gold);
+  text-shadow: 0 0 24px rgba(255, 212, 121, 0.5);
+}
+.bt-round { font-size: 12px; color: var(--muted); margin-top: 4px; letter-spacing: 2px; }
+.bt-picks-line { margin-top: 14px; font-size: 11px; color: var(--muted); }
+.bt-picks-line em { color: var(--panel-line); margin: 0 4px; }
+
+/* ---------- 指令区 ---------- */
+.bt-command { max-width: 960px; margin: 0 auto; }
+.bt-cmd-title {
+  text-align: center; font-size: 12px; letter-spacing: 3px;
+  color: var(--gold); margin-bottom: 12px;
+}
+.bt-acts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.bt-act {
+  padding: 16px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-line);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  text-align: center;
+  transition: 0.2s;
+}
+.bt-act:hover:not(:disabled) { transform: translateY(-3px); border-color: var(--gold); box-shadow: var(--shadow); }
+.bt-act.disabled, .bt-act:disabled { opacity: 0.38; cursor: not-allowed; }
+.bt-act-icon { display: block; font-size: 24px; margin-bottom: 6px; }
+.bt-act b { display: block; font-size: 14px; letter-spacing: 2px; }
+.bt-act em { display: block; font-style: normal; font-size: 10px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+.bt-log {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-line);
+  background: rgba(0, 0, 0, 0.3);
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.8;
+  min-height: 60px;
+}
+
+/* ============================================================
+   全屏遮罩 / 弹层（Teleport 到 body，不受 .bt-page transform 影响）
+   ========================================================== */
+.bt-mask {
+  position: fixed; inset: 0; z-index: 60;
+  display: grid; place-items: center;
+  background: rgba(3, 5, 14, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 20px;
+  animation: btFade 0.3s ease-out both;
+}
+.bt-mask.solid {
+  background: rgba(3, 5, 14, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 70;
+}
+@keyframes btFade { from { opacity: 0; } to { opacity: 1; } }
+
+.bt-handoff, .bt-result {
+  width: min(520px, 100%);
+  padding: 40px 36px;
+  border-radius: 18px;
+  border: 1px solid var(--panel-line);
+  background: linear-gradient(160deg, rgba(18, 22, 40, 0.96), rgba(10, 12, 24, 0.98));
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+.bt-handoff-eyebrow, .bt-result-eyebrow {
+  font-size: 11px; letter-spacing: 6px; color: var(--gold); opacity: 0.8;
+}
+.bt-handoff h2, .bt-result h2 {
+  font-size: 30px; letter-spacing: 8px; margin: 12px 0;
+  color: var(--text);
+}
+.bt-handoff p, .bt-result-sub { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.bt-handoff .bt-primary { margin-top: 22px; }
+.bt-result-scores {
+  display: flex; align-items: center; justify-content: center; gap: 24px;
+  margin: 24px 0 18px;
+}
+.bt-result-scores div { display: flex; flex-direction: column; gap: 6px; }
+.bt-result-scores span { font-size: 12px; color: var(--muted); }
+.bt-result-scores b { font-size: 34px; color: var(--cyan); }
+.bt-result-scores em { font-size: 22px; color: var(--panel-line); }
+.bt-result-reward { font-size: 14px; color: var(--muted); }
+.bt-result-reward b { font-size: 22px; color: var(--gold); margin: 0 6px; }
+.bt-result-note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+.bt-result-record { font-size: 11px; color: var(--muted); margin-top: 14px; }
+.bt-result-actions { display: flex; gap: 12px; justify-content: center; margin-top: 26px; }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 720px) {
+  .bt-arena { grid-template-columns: 1fr; }
+  .bt-center { order: -1; }
+  .bt-vs { font-size: 28px; }
+  .bt-acts { grid-template-columns: 1fr 1fr; }
+  .bt-modes, .bt-diffs { grid-template-columns: 1fr; }
+  .bt-handoff, .bt-result { padding: 30px 20px; }
+  .bt-handoff h2, .bt-result h2 { font-size: 22px; }
+}
