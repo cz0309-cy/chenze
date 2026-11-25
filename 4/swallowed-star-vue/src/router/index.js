@@ -4,6 +4,8 @@ import Register from '../views/Register.vue'
 import Home from '../views/Home.vue'
 import Explore from '../views/Explore.vue'
 import Codex from '../views/Codex.vue'
+import RealmTree from '../views/RealmTree.vue'
+import CosmosMap from '../views/CosmosMap.vue'
 import Market from '../views/Market.vue'
 import Cultivate from '../views/Cultivate.vue'
 import Character from '../views/Character.vue'
@@ -58,6 +60,8 @@ const routes = [
   { path: '/home', name: 'home', component: Home, meta: { auth: true } },
   { path: '/explore', name: 'explore', component: Explore, meta: { auth: true } },
   { path: '/codex', name: 'codex', component: Codex, meta: { auth: true } },
+  { path: '/realms', name: 'realms', component: RealmTree, meta: { auth: true } },
+  { path: '/atlas', name: 'atlas', component: CosmosMap, meta: { auth: true } },
   { path: '/market', name: 'market', component: Market, meta: { auth: true } },
   { path: '/cultivate', name: 'cultivate', component: Cultivate, meta: { auth: true } },
   { path: '/character', name: 'character', component: Character, meta: { auth: true } },

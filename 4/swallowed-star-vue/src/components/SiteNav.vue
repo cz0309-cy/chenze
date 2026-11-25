@@ -96,6 +96,8 @@ const allNavs = [
   { key: 'home', label: '星域首页', to: '/home' },
   { key: 'explore', label: '星海探索', to: '/explore' },
   { key: 'codex', label: '文明图鉴', to: '/codex' },
+  { key: 'realms', label: '境界体系', to: '/realms' },
+  { key: 'atlas', label: '宇宙尺度', to: '/atlas' },
   { key: 'market', label: '奇物交易', to: '/market' },
   { key: 'cultivate', label: '意识修炼', to: '/cultivate' },
   { key: 'character', label: '人物档案', to: '/character' },
