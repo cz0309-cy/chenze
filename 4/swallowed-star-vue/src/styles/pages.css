@@ -2485,18 +2485,33 @@
    写实照片（星域首页 / 星海探索 / 文明图鉴）
    只作用于图标位，不改动原有配色与布局
    ============================================================ */
-/* 星域首页卡片图标位：让照片铺满原 44x44 / 58x58 容器 */
+/* 星域首页卡片照片位：放大容器与照片，保持圆角一致 */
+.star-card .glyph {
+  width: 76px;
+  height: 76px;
+  margin-bottom: 14px;
+}
 .star-card .glyph .photo-icon,
 .star-card .glyph .photo-icon-fallback {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 76px;
+  height: 76px;
+  border-radius: 14px;
+}
+.star-card .sk-glyph {
+  width: 76px;
+  height: 76px;
+  border-radius: 14px;
+}
+.em-glyph {
+  width: 96px;
+  height: 96px;
+  flex: 0 0 96px;
 }
 .em-glyph .photo-icon,
 .em-glyph .photo-icon-fallback {
-  width: 58px;
-  height: 58px;
-  border-radius: 14px;
+  width: 96px;
+  height: 96px;
+  border-radius: 18px;
 }
 
 /* 星海探索：星图节点圆形照片 + 详情大图 */

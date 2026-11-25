@@ -105,7 +105,7 @@
           @click="openCard(item)"
         >
           <span class="cat-badge" :style="badgeStyle(item)">{{ item.category }}</span>
-          <div class="glyph" :style="glyphStyle(item)"><PhotoIcon :name="item.name" :glyph="item.glyph" :size="44" /></div>
+          <div class="glyph" :style="glyphStyle(item)"><PhotoIcon :name="item.name" :glyph="item.glyph" :size="76" :radius="14" /></div>
           <h4>{{ item.name }}</h4>
           <p>{{ item.summary }}</p>
           <div class="card-foot">
@@ -139,7 +139,7 @@
       <div class="em-panel">
         <button class="em-close" @click="closeDetail">×</button>
         <div class="em-top">
-          <span class="em-glyph" :style="glyphStyle(detail)"><PhotoIcon :name="detail.name" :glyph="detail.glyph" :size="58" :radius="14" /></span>
+          <span class="em-glyph" :style="glyphStyle(detail)"><PhotoIcon :name="detail.name" :glyph="detail.glyph" :size="96" :radius="18" /></span>
           <div class="em-head">
             <span class="em-cat" :style="badgeStyle(detail)">{{ detail.category }}</span>
             <h3>{{ detail.name }}</h3>
