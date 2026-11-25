@@ -14,16 +14,15 @@
         <button class="path-node" :class="{ on: active === -1 }" @click="focus(-1)">
           <span class="pn-dot">◎</span>全景
         </button>
-        <span class="path-arrow" v-for="i in layers.length" :key="'a' + i" v-show="i <= active + 1">›</span>
         <template v-for="(l, i) in layers" :key="l.id">
+          <span class="path-arrow">›</span>
           <button
             class="path-node"
-            :class="{ on: active === i, passed: i < active, locked: i > active + 1 }"
+            :class="{ on: active === i, passed: i < active }"
             @click="focus(i)"
           >
             <span class="pn-dot">{{ i + 1 }}</span>{{ l.name }}
           </button>
-          <span class="path-arrow" v-if="i < layers.length - 1">›</span>
         </template>
       </div>
 
@@ -181,7 +180,6 @@ function zoomOut() { zoom.value = Math.min(2.2, Number((zoom.value + 0.15).toFix
 .path-node.on { border-color: var(--gold); color: var(--gold); background: rgba(255,212,121,.1); }
 .path-node.on .pn-dot { background: rgba(255,212,121,.25); }
 .path-node.passed { color: #b9c6ee; }
-.path-node.locked { opacity: .35; }
 .path-arrow { color: var(--muted); font-size: 16px; padding: 0 2px; }
 
 /* 舞台 */

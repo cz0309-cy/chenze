@@ -187,7 +187,8 @@ function scrollToTier(key) {
   const shell = shellEl.value
   const target = shell && shell.querySelector(`[data-tier="${key}"]`)
   if (target && shell) {
-    shell.scrollTo({ top: target.offsetTop - shell.offsetTop - 96, behavior: 'smooth' })
+    const top = target.getBoundingClientRect().top - shell.getBoundingClientRect().top + shell.scrollTop - 100
+    shell.scrollTo({ top, behavior: 'smooth' })
   }
 }
 
