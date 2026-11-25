@@ -34,7 +34,11 @@ for (let i = 0; i < seeds.length; i++) seeds[i] = Math.random()
 // 当前 / 目标 位置与颜色
 let curPos = new Float32Array(COUNT * 3)
 let curCol = new Float32Array(COUNT * 3)
-let fromPos, toPos, fromCol, toCol, morph = 1
+let fromPos = new Float32Array(COUNT * 3)
+let toPos = new Float32Array(COUNT * 3)
+let fromCol = new Float32Array(COUNT * 3)
+let toCol = new Float32Array(COUNT * 3)
+let morph = 1
 let camZ = 300, camTargetZ = 300
 let coreColor = new THREE.Color('#ffd479'), coreTargetColor = new THREE.Color('#ffd479')
 let spin = 0.0004
