@@ -61,6 +61,12 @@
                 :title="favs.has(c.id) ? '取消收藏' : '收藏'"
               >{{ favs.has(c.id) ? '★' : '☆' }}</button>
             </div>
+            <img
+              v-if="photoSrc(c.name)"
+              class="cx-photo"
+              :src="photoSrc(c.name)"
+              :alt="c.name"
+            >
             <h4>{{ c.name }}</h4>
             <div class="cx-en">{{ c.en }}</div>
             <p>{{ c.desc }}</p>
@@ -76,6 +82,12 @@
         </div>
 
         <aside class="card cx-detail">
+          <img
+            v-if="photoSrc(current.name)"
+            class="cx-detail-photo"
+            :src="photoSrc(current.name)"
+            :alt="current.name"
+          >
           <div class="cx-dh">
             <span class="cx-id">{{ current.id }} / ENTRY</span>
             <span class="danger-txt">{{ '★'.repeat(current.danger) }}</span>
@@ -119,6 +131,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
+import { photoSrc } from '../data/photoMap.js'
 import { CIVS } from '../data/lore.js'
 import { fetchLore } from '../api/lore.js'
 

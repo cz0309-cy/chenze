@@ -2480,3 +2480,66 @@
   border-color: rgba(126, 224, 184, 0.35);
   background: rgba(126, 224, 184, 0.06);
 }
+
+/* ============================================================
+   写实照片（星域首页 / 星海探索 / 文明图鉴）
+   只作用于图标位，不改动原有配色与布局
+   ============================================================ */
+/* 星域首页卡片图标位：让照片铺满原 44x44 / 58x58 容器 */
+.star-card .glyph .photo-icon,
+.star-card .glyph .photo-icon-fallback {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+.em-glyph .photo-icon,
+.em-glyph .photo-icon-fallback {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+}
+
+/* 星海探索：星图节点圆形照片 + 详情大图 */
+.star-map .node-photo {
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+.map-node:hover .node-photo,
+.map-node.on .node-photo {
+  opacity: 1;
+}
+.rg-photo {
+  display: block;
+  width: calc(100% - 40px);
+  height: 150px;
+  object-fit: cover;
+  margin: 14px 20px 0;
+  border-radius: 10px;
+  border: 1px solid rgba(102, 224, 255, 0.22);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* 文明图鉴：卡片缩略图 + 详情大图 */
+.cx-photo {
+  display: block;
+  width: 100%;
+  height: 108px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(140, 170, 255, 0.16);
+  transition: filter 0.2s;
+}
+.cx-card:hover .cx-photo {
+  filter: brightness(1.12);
+}
+.cx-detail-photo {
+  display: block;
+  width: calc(100% - 40px);
+  height: 170px;
+  object-fit: cover;
+  margin: 14px 20px 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 212, 121, 0.25);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}

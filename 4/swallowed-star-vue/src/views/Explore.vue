@@ -56,6 +56,9 @@
                 <stop offset="0%" stop-color="#ffd479" stop-opacity=".5" />
                 <stop offset="100%" stop-color="#ffd479" stop-opacity="0" />
               </radialGradient>
+              <clipPath v-for="r in regions" :key="'clip-' + r.id" :id="'nodeClip-' + r.id">
+                <circle :cx="r.x" :cy="r.y" r="14" />
+              </clipPath>
             </defs>
 
             <g class="map-grid">
@@ -94,11 +97,22 @@
                 class="ring"
                 :cx="r.x"
                 :cy="r.y"
-                r="11"
+                r="15"
                 :stroke="nodeColor(r)"
                 :stroke-opacity="r.id === currentId ? 0.9 : 0.35"
               />
-              <circle class="core" :cx="r.x" :cy="r.y" r="4.5" :fill="nodeColor(r)" />
+              <image
+                v-if="photoSrc(r.name)"
+                class="node-photo"
+                :href="photoSrc(r.name)"
+                :x="r.x - 14"
+                :y="r.y - 14"
+                width="28"
+                height="28"
+                preserveAspectRatio="xMidYMid slice"
+                :clip-path="'url(#nodeClip-' + r.id + ')'"
+              />
+              <circle v-else class="core" :cx="r.x" :cy="r.y" r="4.5" :fill="nodeColor(r)" />
               <text :x="r.x" :y="r.y + 26" text-anchor="middle">{{ r.name }}</text>
             </g>
           </svg>
@@ -113,6 +127,12 @@
 
         <!-- 星域详情 -->
         <aside class="card rg-detail">
+          <img
+            v-if="photoSrc(current.name)"
+            class="rg-photo"
+            :src="photoSrc(current.name)"
+            :alt="current.name"
+          >
           <div class="card-head">
             <h3>{{ current.name }}</h3>
             <span class="coord">{{ current.coord }}</span>
@@ -177,6 +197,7 @@
 <script setup>
 import { computed, onMounted, onBeforeUnmount, reactive, ref } from 'vue'
 import SiteNav from '../components/SiteNav.vue'
+import { photoSrc } from '../data/photoMap.js'
 import { STAR_REGIONS, EXPLORE_LOGS } from '../data/lore.js'
 import { fetchLore } from '../api/lore.js'
 import { useToast } from '../composables/useToast.js'

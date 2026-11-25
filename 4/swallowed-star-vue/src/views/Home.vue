@@ -105,7 +105,7 @@
           @click="openCard(item)"
         >
           <span class="cat-badge" :style="badgeStyle(item)">{{ item.category }}</span>
-          <div class="glyph" :style="glyphStyle(item)">{{ item.glyph }}</div>
+          <div class="glyph" :style="glyphStyle(item)"><PhotoIcon :name="item.name" :glyph="item.glyph" :size="44" /></div>
           <h4>{{ item.name }}</h4>
           <p>{{ item.summary }}</p>
           <div class="card-foot">
@@ -139,7 +139,7 @@
       <div class="em-panel">
         <button class="em-close" @click="closeDetail">×</button>
         <div class="em-top">
-          <span class="em-glyph" :style="glyphStyle(detail)">{{ detail.glyph }}</span>
+          <span class="em-glyph" :style="glyphStyle(detail)"><PhotoIcon :name="detail.name" :glyph="detail.glyph" :size="58" :radius="14" /></span>
           <div class="em-head">
             <span class="em-cat" :style="badgeStyle(detail)">{{ detail.category }}</span>
             <h3>{{ detail.name }}</h3>
@@ -168,6 +168,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SiteNav from '../components/SiteNav.vue'
 import AppIcon from '../components/AppIcon.vue'
+import PhotoIcon from '../components/PhotoIcon.vue'
 import { getSession, fetchMe, logout } from '../composables/useAuth.js'
 import { useToast } from '../composables/useToast.js'
 import { fetchOverview, fetchEntries, fetchEntry } from '../api/home.js'
